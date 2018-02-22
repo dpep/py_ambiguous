@@ -51,6 +51,8 @@ class Test(unittest.TestCase):
 
         self.assertEquals(3, len(bar))
 
+        self.assertTrue(isinstance(bar, list))
+
         # no exceptions here
         bar[0] = 123
         del bar[0]
@@ -73,6 +75,8 @@ class Test(unittest.TestCase):
         self.assertEquals(9, baz('z', 9)['z'])
 
         self.assertEquals(3, len(baz))
+
+        self.assertTrue(isinstance(baz, dict))
 
         # no exceptions here
         baz['a'] = 123
