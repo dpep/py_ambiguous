@@ -1,13 +1,21 @@
-PACKAGE
+ambiguous
 ======
 
 #### Install
-```pip install PACKAGE```
+```pip install ambiguous```
 
 
 #### Usage
 ```
-from abmiguous import ambiguous
+import ambiguous
 
+@ambiguous.func
+def foo():
+  return 'foo'
+
+
+print foo
+print foo()
+print foo + 'abc'
 
 ```
