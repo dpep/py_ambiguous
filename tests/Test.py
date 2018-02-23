@@ -2,6 +2,7 @@
 
 import os
 import sys
+import types
 import unittest
 
 sys.path = [ os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')) ] + sys.path
@@ -32,6 +33,8 @@ class Test(unittest.TestCase):
 
         self.assertTrue(isinstance(foo, str))
         self.assertTrue(issubclass(foo.__class__, str))
+
+        # test __doc__
 
 
     def test_list_function(self):
@@ -105,6 +108,54 @@ class Test(unittest.TestCase):
         self.assertEquals('bob', foo('bob').getName())
         self.assertEquals('__str__', str(foo))
         self.assertEquals('__call__', foo()())
+
+
+    def test_object(self):
+        class Foo(object):
+            def __init__(self, name=''):
+                self.name = name
+
+            @ambiguous.instancemethod
+            def foo(self, val=''):
+                return '%s.foo(%s)' % (self, val)
+
+            @ambiguous.classmethod
+            def bar(cls, val=''):
+                return '%s.bar(%s)' % (cls, val)
+
+            @ambiguous.staticmethod
+            def baz(val=''):
+                return 'baz(%s)' % val
+
+            def __str__(self):
+                return 'Foo(%s)' % self.name
+
+
+        # instance methods
+        self.assertTrue(isinstance(Foo.foo, types.UnboundMethodType))
+
+        with self.assertRaises(TypeError):
+            # fails since method is unbound
+            Foo.foo()
+
+        self.assertEquals('Foo().foo()', Foo().foo)
+        self.assertEquals('Foo().foo()', Foo().foo())
+        self.assertEquals('Foo(abc).foo()', Foo('abc').foo)
+        self.assertEquals('Foo(abc).foo(xyz)', Foo('abc').foo('xyz'))
+
+
+        # class methods
+        self.assertEquals('%s.bar()' % Foo, Foo.bar)
+        self.assertEquals('%s.bar()' % Foo, Foo.bar())
+        self.assertEquals('%s.bar()' % Foo, Foo().bar())
+        self.assertEquals('%s.bar(abc)' % Foo, Foo.bar('abc'))
+
+
+        # static methods
+        self.assertEquals('baz()', Foo.baz)
+        self.assertEquals('baz()', Foo.baz())
+        self.assertEquals('baz()', Foo().baz())
+        self.assertEquals('baz(abc)', Foo.baz('abc'))
 
 
 
