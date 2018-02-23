@@ -34,7 +34,7 @@ class Test(unittest.TestCase):
         self.assertTrue(isinstance(foo, str))
         self.assertTrue(issubclass(foo.__class__, str))
 
-        # test __doc__
+        # TODO: test __doc__
 
 
     def test_list_function(self):
