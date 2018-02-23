@@ -1,2 +1,10 @@
+v0.1.0, 2018-02-22
+    adc0cab cleanup
+    15e3019 refactor, mascarade module to enable @ambiguous
+    d17dc0c s/function/method/
+    6814e7d add instance, class, and static methods
+    333bdfb simplify
+    234ec17 add object test
+    df7f402 expand test coverage
 v0.0.1, 2018-02-22
     
