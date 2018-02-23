@@ -83,6 +83,30 @@ class Test(unittest.TestCase):
         del baz['a']
 
 
+    def test_obj_function(self):
+        class Foo(object):
+            def __init__(self, name=None):
+                self.name = name
+            def getName(self):
+                return self.name or ''
+            def __call__(self):
+                return '__call__'
+            def __str__(self):
+                return '__str__'
+
+        @ambiguous.func
+        def foo(name=None):
+            return Foo(name)
+
+
+        self.assertTrue(isinstance(foo, Foo))
+        self.assertTrue(isinstance(foo(), Foo))
+        self.assertEquals('', foo.getName())
+        self.assertEquals('bob', foo('bob').getName())
+        self.assertEquals('__str__', str(foo))
+        self.assertEquals('__call__', foo()())
+
+
 
 if __name__ == '__main__':
     unittest.main()
