@@ -11,16 +11,14 @@ from functools import partial
 from ops import ops
 
 
-def ambiguous_function(func, *args):
-  wrapper = partial(func, *args)
-
+def ambiguous_function(func):
   class AmbiguousFunction(object):
       def __call__(self, *args):
-        return wrapper(*args)
+        return func(*args)
 
   for op in ops:
     def exec_op(op, *args):
-      return getattr(wrapper(), op)(*args)
+      return getattr(func(), op)(*args)
 
     setattr(AmbiguousFunction, op, partial(exec_op, op))
 
