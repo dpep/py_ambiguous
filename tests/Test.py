@@ -158,6 +158,15 @@ class Test(unittest.TestCase):
         self.assertEquals('baz(abc)', Foo.baz('abc'))
 
 
+    def test_module(self):
+        @ambiguous
+        def foo():
+          return 'foo'
+
+        self.assertEquals('foo', foo)
+        self.assertEquals('foo', foo())
+
+
 
 if __name__ == '__main__':
     unittest.main()

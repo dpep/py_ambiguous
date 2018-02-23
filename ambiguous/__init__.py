@@ -10,58 +10,43 @@ __all__ = [
 ]
 
 
-from functools import partial
-from ops import ops
-import inspect
-import types
+import sys
+
+from ambiguous import *
 
 
-def ambiguous_method(func, *args):
-  wrapper = partial(func, *args)
-
-  class AmbiguousMethod(object):
-      def __call__(self, *args):
-        return wrapper(*args)
-
-  for op in ops:
-    def exec_op(op, *args):
-      return getattr(wrapper(), op)(*args)
-
-    setattr(AmbiguousMethod, op, partial(exec_op, op))
-
-  return AmbiguousMethod()
-
-
+# define some aliases
 method = ambiguous_method
 func = ambiguous_method
-
-
-# instance method
-def ambiguous_instancemethod(func):
-  class AmbiguousInstanceMethod(object):
-    def __get__(self, obj, objtype):
-      if obj:
-        return ambiguous_method(func, obj)
-
-      # return unbound method
-      return types.MethodType(func, None, objtype)
-
-  return AmbiguousInstanceMethod()
-
 instancemethod = ambiguous_instancemethod
-
-
-# class method
-def ambiguous_classmethod(func):
-  class AmbiguousClassMethod(object):
-    def __get__(self, obj, objtype):
-      return ambiguous_method(func, objtype)
-
-  return AmbiguousClassMethod()
-
 classmethod = ambiguous_classmethod
-
-
-# static method
-ambiguous_staticmethod = ambiguous_method
 staticmethod = ambiguous_staticmethod
+
+
+class Ambiguous(object):
+
+  def __init__(self, module):
+    self.module = module
+
+
+  def __call__(self, *args):
+    return ambiguous_method(*args)
+
+
+  def __getattr__(self, method, *args):
+    return getattr(self.module, method)
+
+
+  def __dir__(self):
+    # mascarade as the underlying module
+    attrs = [ x for x in dir(self.module) if x.startswith('__') ]
+
+    # ambiguous methods and aliases
+    methods = [ getattr(ambiguous, x) for x in ambiguous.__all__ ]
+    attrs.extend([ k for k, v in globals().items() if v in methods ])
+
+    return attrs
+
+
+# overwrite module so that it's callable
+sys.modules[__name__] = Ambiguous(sys.modules[__name__])
