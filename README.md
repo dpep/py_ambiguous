@@ -19,3 +19,6 @@ print foo()
 print foo + 'abc'
 
 ```
+
+#### Caveats
+- Does not work with functions returning objects not subclassing `object`.
