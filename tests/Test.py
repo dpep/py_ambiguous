@@ -13,7 +13,7 @@ import ambiguous
 
 class Test(unittest.TestCase):
     def test_str_function(self):
-        @ambiguous.func
+        @ambiguous.method
         def foo(val=''):
           return 'foo%s' % val
 
@@ -38,7 +38,7 @@ class Test(unittest.TestCase):
 
 
     def test_list_function(self):
-        @ambiguous.func
+        @ambiguous.method
         def bar(val=None):
           return filter(None, [ 1, 2, 3 ] + [ val ])
 
@@ -64,7 +64,7 @@ class Test(unittest.TestCase):
     def test_dict_function(self):
         data = { 'a' : 1, 'b' : 2, 'c' : 3 }
 
-        @ambiguous.func
+        @ambiguous.method
         def baz(key=None, value=None):
           return { k : v for k, v in dict(data, **{ key : value }).items() if k }
 
@@ -97,7 +97,7 @@ class Test(unittest.TestCase):
             def __str__(self):
                 return '__str__'
 
-        @ambiguous.func
+        @ambiguous.method
         def foo(name=None):
             return Foo(name)
 

@@ -9,7 +9,7 @@ ambiguous
 ```
 import ambiguous
 
-@ambiguous.func
+@ambiguous
 def foo():
   return 'foo'
 
