@@ -1,5 +1,5 @@
 __author__ = 'dpepper'
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 
 
 __all__ = [
@@ -7,12 +7,16 @@ __all__ = [
   'ambiguous_instancemethod',
   'ambiguous_classmethod',
   'ambiguous_staticmethod',
+  'decorator',
+  'thing_or_things',
 ]
 
 
 import sys
 
 from ambiguous import *
+from decorator import decorator
+from thing_or_things import thing_or_things
 
 
 # define some aliases
@@ -27,25 +31,37 @@ class Ambiguous(object):
 
   def __init__(self, module):
     self.module = module
+    self.exports = set(module.__all__)
+
+    # add in special attrs
+    for x in dir(module):
+      if x.startswith('__'):
+        self.exports.add(x)
+
+    # find and export all ambiguous method aliases
+    ambiguous_methods = [
+      getattr(ambiguous, x, None) for x in ambiguous.__all__
+    ]
+    for k, v in globals().items():
+      if v in ambiguous_methods:
+        self.exports.add(k)
 
 
   def __call__(self, *args):
     return ambiguous_method(*args)
 
 
-  def __getattr__(self, method, *args):
-    return getattr(self.module, method)
+  def __getattr__(self, method):
+    if method not in self.exports:
+      raise AttributeError("'%s' object has no attribute '%s'" % (
+        self.module.__name__, method
+      ))
+
+    return globals()[method]
 
 
   def __dir__(self):
-    # mascarade as the underlying module
-    attrs = [ x for x in dir(self.module) if x.startswith('__') ]
-
-    # ambiguous methods and aliases
-    methods = [ getattr(ambiguous, x) for x in ambiguous.__all__ ]
-    attrs.extend([ k for k, v in globals().items() if v in methods ])
-
-    return attrs
+    return list(self.exports)
 
 
 # overwrite module so that it's callable
