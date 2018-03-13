@@ -89,6 +89,39 @@ class ThingOrThingTest(unittest.TestCase):
             prefix()
 
 
+    def test_obj_context(self):
+        class Foo:
+            @ambiguous.thing_or_things(offset=1)
+            def inst_it(self, args):
+                assert isinstance(self, Foo)
+                return { x : x for x in args }
+
+            @classmethod
+            @ambiguous.thing_or_things(offset=1)
+            def cls_it(cls, args):
+                assert cls == Foo
+                return { x : x for x in args }
+
+            @staticmethod
+            @ambiguous.thing_or_things
+            def static_it(args):
+                return { x : x for x in args }
+
+
+        # instance method
+        self.assertEquals(3, Foo().inst_it(3))
+        self.assertEquals({ 3 : 3 }, Foo().inst_it([ 3 ]))
+        self.assertEquals({ 1 : 1, 2 : 2 }, Foo().inst_it(1, 2))
+
+        # cls method
+        self.assertEquals(3, Foo.cls_it(3))
+        self.assertEquals({ 3 : 3 }, Foo.cls_it([ 3 ]))
+        self.assertEquals({ 1 : 1, 2 : 2 }, Foo.cls_it(1, 2))
+
+        # static method
+        self.assertEquals(3, Foo.static_it(3))
+        self.assertEquals({ 3 : 3 }, Foo.static_it([ 3 ]))
+        self.assertEquals({ 1 : 1, 2 : 2 }, Foo.static_it(1, 2))
 
 
 if __name__ == '__main__':
