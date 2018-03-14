@@ -5,13 +5,31 @@ import sys
 import types
 import unittest
 
-sys.path = [ os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')) ] + sys.path
+sys.path = [ os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) ] + sys.path
 
 import ambiguous
 
 
 
 class Test(unittest.TestCase):
+    def test_obj_obj(self):
+        class Foo(object):
+            def foo(self):
+                class Bar(object):
+                    def bar(self):
+                        return 'bar'
+                return Bar()
+
+
+    def test_basic(self):
+        @ambiguous.method
+        def foo():
+          return True
+
+        self.assertTrue(foo())
+        self.assertTrue(foo)
+
+
     def test_str_function(self):
         @ambiguous.method
         def foo(val=''):
