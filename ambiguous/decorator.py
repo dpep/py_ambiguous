@@ -17,10 +17,23 @@ def decorator(decorator_fn):
       # passed an arg, but not the function to decorate. wrap
       # and wait for more.
       def arg_wrapper(*more_args, **more_kwargs):
-        return wrapper(
-          *(more_args + args),  # prepend new args
-          **dict(kwargs, **more_kwargs)
-        )
+        if more_args and callable(more_args[0]):
+          if len(more_args) > 1:
+            # arg order is ambiguous
+            raise ValueError(
+              'expecting either callable or args, not both: %s' % str(more_args)
+            )
+
+          # prepend callable
+          new_args = more_args + args
+        else:
+          # append additional args
+          new_args = args + more_args
+
+        # merge in new kwargs
+        new_kwargs = dict(kwargs, **more_kwargs)
+
+        return wrapper(*new_args, **new_kwargs)
 
       return arg_wrapper
 

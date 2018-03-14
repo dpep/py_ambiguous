@@ -99,6 +99,72 @@ class DecoratorTest(unittest.TestCase):
             '123_abc',
             prefix(abc, '123')(),
         )
+        self.assertEquals(
+            '123_abcabc',
+            prefix(abc, pre='123', repeat=2)(),
+        )
+
+        # out of order
+        self.assertEquals(
+            '123_abcabc',
+            prefix(abc, repeat=2, pre='123')(),
+        )
+
+
+    def test_sequential_args(self):
+        abc = lambda: 'abc'
+
+        self.assertEquals(
+            '123_abc',
+            prefix('123')(abc)(),
+        )
+        self.assertEquals(
+            '123_abcabc',
+            prefix('123')(2)(abc)(),
+        )
+        self.assertEquals(
+            '123_abcabc',
+            prefix(pre='123')(repeat=2)(abc)(),
+        )
+
+        # out of order
+        self.assertEquals(
+            '123_abcabc',
+            prefix(repeat=2)(pre='123')(abc)(),
+        )
+
+        self.assertEquals(
+            '123_abcabc',
+            prefix('123')(abc, repeat=2)(),
+        )
+
+        self.assertEquals(
+            '123_abcabc',
+            prefix(repeat=2)(abc, pre='123')(),
+        )
+
+        # passing kwargs and then fn + args is ok
+        self.assertEquals(
+            '123_abcabc',
+            prefix(repeat=2)(abc, '123')(),
+        )
+
+        # kwargs update
+        self.assertEquals(
+            '456_abcabc',
+            prefix(pre='123', repeat=2)(abc, pre='456')(),
+        )
+
+
+    def test_errors(self):
+        abc = lambda: 'abc'
+
+        with self.assertRaises(ValueError):
+            # arg order is ambiguous
+            self.assertEquals(
+                '123_abcabc',
+                prefix('123')(abc, 2)(),
+            )
 
 
 
