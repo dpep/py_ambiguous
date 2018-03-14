@@ -16,6 +16,16 @@ def suffix(fn, str_='abc'):
         return '%s_%s' % (fn(*args, **kwargs), str_)
     return wrapper
 
+@decorator
+def prefix(fn, pre='abc', repeat=1):
+    '''prefix and repeat the result of the wrapped fn'''
+    def wrapper(*args, **kwargs):
+        return '%s_%s' % (
+            pre,
+            ''.join([ fn(*args, **kwargs) for i in range(repeat) ]),
+        )
+    return wrapper
+
 
 class DecoratorTest(unittest.TestCase):
 
@@ -37,6 +47,40 @@ class DecoratorTest(unittest.TestCase):
 
         self.assertEquals('xyz_zzz', xyz())
         self.assertEquals('xyzxyz_zzz', xyz(2))
+
+
+    def test_decorator_args(self):
+        @suffix('123')
+        def qqq():
+            return 'qqq'
+
+        self.assertEquals('qqq_123', qqq())
+
+
+    def test_decorator_many_args(self):
+        # basic decorator
+        @prefix
+        def pre():
+            return 'pre'
+        self.assertEquals('abc_pre', pre())
+
+        # with a positional arg
+        @prefix('123')
+        def foo():
+            return 'foo'
+        self.assertEquals('123_foo', foo())
+
+        # multiple args
+        @prefix('456', 2)
+        def bar():
+            return 'bar'
+        self.assertEquals('456_barbar', bar())
+
+        # args and kwargs
+        @prefix('789', repeat=3)
+        def baz():
+            return 'baz'
+        self.assertEquals('789_bazbazbaz', baz())
 
 
 
