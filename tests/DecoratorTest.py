@@ -40,7 +40,7 @@ class DecoratorTest(unittest.TestCase):
         self.assertEquals('abcabc_abc', abc(repeat=2))
 
 
-    def test_decorator_kwargs(self):
+    def test_kwargs(self):
         @suffix(str_='zzz')
         def xyz(repeat=1):
             return 'xyz' * repeat
@@ -49,7 +49,7 @@ class DecoratorTest(unittest.TestCase):
         self.assertEquals('xyzxyz_zzz', xyz(2))
 
 
-    def test_decorator_args(self):
+    def test_args(self):
         @suffix('123')
         def qqq():
             return 'qqq'
@@ -57,7 +57,7 @@ class DecoratorTest(unittest.TestCase):
         self.assertEquals('qqq_123', qqq())
 
 
-    def test_decorator_many_args(self):
+    def test_many_args(self):
         # basic decorator
         @prefix
         def pre():
@@ -81,6 +81,24 @@ class DecoratorTest(unittest.TestCase):
         def baz():
             return 'baz'
         self.assertEquals('789_bazbazbaz', baz())
+
+
+    def test_lambda(self):
+        abc = lambda: 'abc'
+
+        self.assertEquals('abc', abc())
+
+        wrapped = suffix(abc)
+        self.assertEquals('abc_abc', wrapped())
+
+        self.assertEquals(
+            'abc_abc',
+            prefix(abc)(),
+        )
+        self.assertEquals(
+            '123_abc',
+            prefix(abc, '123')(),
+        )
 
 
 
