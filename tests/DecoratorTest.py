@@ -143,6 +143,12 @@ class DecoratorTest(unittest.TestCase):
             prefix(repeat=2)(abc, pre='123')(),
         )
 
+        # passing kwarg, then args, then fn is ok
+        self.assertEquals(
+            '123_abcabc',
+            prefix(repeat=2)('123')(abc)(),
+        )
+
         # passing kwargs and then fn + args is ok
         self.assertEquals(
             '123_abcabc',
