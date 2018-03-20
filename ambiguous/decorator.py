@@ -1,4 +1,4 @@
-from functools import partial
+from functools import partial, wraps
 
 
 """
@@ -6,6 +6,7 @@ Enable a decorator to accept args and kwargs.  Positional args
 may not be callable when used via `@decorator`.
 """
 def decorator(decorator_fn):
+  @wraps(decorator_fn)
   def wrapper(*args, **kwargs):
     assert args or kwargs
 
@@ -16,6 +17,7 @@ def decorator(decorator_fn):
 
       # passed an arg, but not the function to decorate. wrap
       # and wait for more.
+      @wraps(decorator_fn)
       def arg_wrapper(*more_args, **more_kwargs):
         if more_args and callable(more_args[0]):
           if len(more_args) > 1:
@@ -38,6 +40,10 @@ def decorator(decorator_fn):
       return arg_wrapper
 
     # given kwargs and still need function
-    return partial(wrapper, **kwargs)
+    @wraps(decorator_fn)
+    def kwarg_wrapper(*args, **more_kwargs):
+      return wrapper(*args, **dict(kwargs, **more_kwargs))
+    return kwarg_wrapper
+
 
   return wrapper

@@ -1,10 +1,12 @@
 from collections import Iterable
+from functools import wraps
 
 from .decorator import decorator
 
 
 @decorator
 def thing_or_things(fn, offset=0):
+  @wraps(fn)
   def wrapper(*args, **kwargs):
     if len(args) < offset:
       raise ValueError(

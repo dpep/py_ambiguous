@@ -167,6 +167,17 @@ class DecoratorTest(unittest.TestCase):
             )
 
 
+    def test_wrapper(self):
+        assert 'suffix' == suffix.__name__
+
+        def foo():
+            pass
+
+        assert 'foo' == decorator(foo).__name__
+        assert 'foo' == decorator(foo)(True).__name__
+        assert 'foo' == decorator(foo)(arg=123).__name__
+
+
 
 if __name__ == '__main__':
     unittest.main()
