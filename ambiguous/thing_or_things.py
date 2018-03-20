@@ -4,6 +4,9 @@ from functools import wraps
 from .decorator import decorator
 
 
+__all__ = [ 'thing_or_things' ]
+
+
 @decorator
 def thing_or_things(fn, offset=0):
   @wraps(fn)

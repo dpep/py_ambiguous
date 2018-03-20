@@ -1,6 +1,9 @@
 from functools import partial, wraps
 
 
+__all__ = [ 'decorator' ]
+
+
 """
 Enable a decorator to accept args and kwargs.  Positional args
 may not be callable when used via `@decorator`.
