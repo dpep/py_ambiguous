@@ -124,5 +124,36 @@ class ThingOrThingTest(unittest.TestCase):
         self.assertEquals({ 1 : 1, 2 : 2 }, Foo.static_it(1, 2))
 
 
+    def test_return_type(self):
+        with self.assertRaises(TypeError):
+            thing_or_things(lambda things: things)(1)
+
+        with self.assertRaises(TypeError):
+            thing_or_things(lambda things: True)(1)
+
+        with self.assertRaises(TypeError):
+            thing_or_things(lambda things: things)(1, 2)
+
+
+    def test_missing_key(self):
+        with self.assertRaises(KeyError):
+            thing_or_things(lambda things: {})(1)
+
+        with self.assertRaises(KeyError):
+            thing_or_things(lambda things: { 2 : 2 })(1)
+
+        with self.assertRaises(KeyError):
+            thing_or_things(lambda things: { 2 : 2 })(1, 2)
+
+
+    def test_extra_key(self):
+        with self.assertRaises(KeyError):
+            thing_or_things(lambda things: { 1 : 1 })()
+
+        with self.assertRaises(KeyError):
+            thing_or_things(lambda things: { 1 : 1, 2 : 2 })(1)
+
+
+
 if __name__ == '__main__':
     unittest.main()
