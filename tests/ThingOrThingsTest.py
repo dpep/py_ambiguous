@@ -6,11 +6,11 @@ import types
 import unittest
 
 sys.path = [ os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) ] + sys.path
-import ambiguous
+from ambiguous import thing_or_things
 
 
 
-@ambiguous.thing_or_things
+@thing_or_things
 def itself(args):
   return { x : x for x in args }
 
@@ -56,7 +56,7 @@ class ThingOrThingTest(unittest.TestCase):
 
 
     def test_param(self):
-        @ambiguous.thing_or_things
+        @thing_or_things
         def multiply(args, factor=1):
           return { x : x * factor for x in args }
 
@@ -71,7 +71,7 @@ class ThingOrThingTest(unittest.TestCase):
 
 
     def test_prefix(self):
-        @ambiguous.thing_or_things(offset=1)
+        @thing_or_things(offset=1)
         def prefix(prefix, args):
           return { x : "%s%s" % (prefix, x) for x in args }
 
@@ -91,19 +91,19 @@ class ThingOrThingTest(unittest.TestCase):
 
     def test_obj_context(self):
         class Foo:
-            @ambiguous.thing_or_things(offset=1)
+            @thing_or_things(offset=1)
             def inst_it(self, args):
                 assert isinstance(self, Foo)
                 return { x : x for x in args }
 
             @classmethod
-            @ambiguous.thing_or_things(offset=1)
+            @thing_or_things(offset=1)
             def cls_it(cls, args):
                 assert cls == Foo
                 return { x : x for x in args }
 
             @staticmethod
-            @ambiguous.thing_or_things
+            @thing_or_things
             def static_it(args):
                 return { x : x for x in args }
 
