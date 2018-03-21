@@ -171,14 +171,31 @@ class DecoratorTest(unittest.TestCase):
             )
 
 
-    def test_wrapper(self):
-        assert 'suffix' == suffix.__name__
+    def test_wraps(self):
+        self.assertEquals('suffix', suffix.__name__)
 
+        @decorator
         def foo(): pass
+        self.assertEquals('foo', foo.__name__)
 
-        assert 'foo' == decorator(foo).__name__
-        assert 'foo' == decorator(foo)(True).__name__
-        assert 'foo' == decorator(foo)(arg=123).__name__
+        # test partials
+        self.assertEquals('foo', foo().__name__)
+        self.assertEquals('foo', foo(True).__name__)
+        self.assertEquals('foo', foo(arg=123).__name__)
+
+
+        @decorator
+        def bar(fn, *args, **kwargs):
+            def wrapper(*args):
+                return fn(*args)
+            return wrapper
+
+        self.assertEquals('bar', bar.__name__)
+
+
+        def baz(arg): pass
+        self.assertEquals('baz', baz.__name__)
+        self.assertEquals('baz', bar(baz).__name__)
 
 
 

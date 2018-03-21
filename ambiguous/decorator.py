@@ -1,5 +1,5 @@
 import types
-from functools import partial, wraps
+from functools import partial, wraps, update_wrapper
 
 from .inspector import same_method
 
@@ -21,8 +21,8 @@ def decorator(decorator_fn):
 
     if args:
       if callable(args[0]):
-        # apply desired decorator
-        return decorator_fn(*args, **kwargs)
+        # apply desired decorator and mask signature
+        return update_wrapper(decorator_fn(*args, **kwargs), args[0])
 
       # passed an arg, but not the function to decorate. wrap
       # and wait for more.
