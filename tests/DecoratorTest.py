@@ -39,6 +39,11 @@ class DecoratorTest(unittest.TestCase):
         self.assertEquals('abc_abc', abc())
         self.assertEquals('abcabc_abc', abc(repeat=2))
 
+        # call decorator without args, ie. `suffix()` vs `suffix`
+        @suffix()
+        def xyz(): return 'xyz'
+        self.assertEquals('xyz_abc', xyz())
+
 
     def test_kwargs(self):
         @suffix(str_='zzz')

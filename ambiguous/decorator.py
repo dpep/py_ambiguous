@@ -14,7 +14,10 @@ may not be callable when used via `@decorator`.
 def decorator(decorator_fn):
   @wraps(decorator_fn)
   def wrapper(*args, **kwargs):
-    assert args or kwargs
+    # called with no args
+    if not args and not kwargs:
+      return wrapper
+
 
     if args:
       if callable(args[0]):
