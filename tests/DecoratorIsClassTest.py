@@ -25,15 +25,18 @@ class DecoratorIsClassTest(unittest.TestCase):
             def baz(arg):
                 return is_class(Foo.baz, arg)
 
+        foo = Foo()
+
         self.assertFalse(Foo().foo())
-        self.assertTrue(Foo().bar())
         self.assertTrue(Foo.bar())
-        self.assertFalse(Foo().baz('baz'))
+        self.assertTrue(Foo().bar())
+        self.assertFalse(Foo.baz(foo))
+        self.assertFalse(Foo().baz(foo))
 
 
     def test_sanity(self):
         def foo(arg): return is_class(foo, arg)
-        self.assertFalse(foo('str arg'))
+        self.assertFalse(foo('str'))
 
 
     def test_decorator(self):
@@ -56,10 +59,13 @@ class DecoratorIsClassTest(unittest.TestCase):
             def baz(arg): pass
 
 
+        foo = Foo()
+
         self.assertFalse(Foo().foo())
-        self.assertTrue(Foo().bar())
         self.assertTrue(Foo.bar())
-        self.assertFalse(Foo().baz('baz'))
+        self.assertTrue(Foo().bar())
+        self.assertFalse(Foo.baz(foo))
+        self.assertFalse(Foo().baz(foo))
 
 
 

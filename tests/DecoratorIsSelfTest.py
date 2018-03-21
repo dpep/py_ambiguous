@@ -25,16 +25,19 @@ class DecoratorIsSelfTest(unittest.TestCase):
             def baz(arg):
                 return is_self(Foo.baz, arg)
 
+        foo = Foo()
 
         self.assertTrue(Foo().foo())
-        self.assertFalse(Foo().bar())
         self.assertFalse(Foo.bar())
-        self.assertFalse(Foo().baz('baz'))
+        self.assertFalse(Foo().bar())
+        self.assertFalse(Foo.baz(foo))
+        self.assertFalse(Foo.baz(foo))
+        self.assertFalse(Foo().baz(foo))
 
 
     def test_sanity(self):
         def foo(arg): return is_self(foo, arg)
-        self.assertFalse(foo('str arg'))
+        self.assertFalse(foo('str'))
 
 
     def test_decorator(self):
@@ -60,21 +63,27 @@ class DecoratorIsSelfTest(unittest.TestCase):
             def baz(arg): return arg
 
 
+        foo = Foo()
+
         self.assertEqual(
-            (True, 123),
-            Foo().foo(123)
+            (True, foo),
+            Foo().foo(foo)
         )
         self.assertEqual(
-            (False, 123),
-            Foo().bar(123)
+            (False, foo),
+            Foo.bar(foo)
         )
         self.assertEqual(
-            (False, 123),
-            Foo.bar(123)
+            (False, foo),
+            Foo().bar(foo)
         )
         self.assertEqual(
-            (False, 123),
-            Foo().baz(123)
+            (False, foo),
+            Foo.baz(foo)
+        )
+        self.assertEqual(
+            (False, foo),
+            Foo().baz(foo)
         )
 
 
@@ -97,11 +106,12 @@ class DecoratorIsSelfTest(unittest.TestCase):
 
             @staticmethod
             @Bar.check_self
-            def baz(self): pass
+            def baz(): pass
 
         self.assertTrue(Baz().foo())
-        self.assertFalse(Baz().bar())
         self.assertFalse(Baz.bar())
+        self.assertFalse(Baz().bar())
+        self.assertFalse(Baz.baz())
         self.assertFalse(Baz().baz())
 
 
