@@ -7,7 +7,6 @@ import unittest
 from functools import wraps
 
 sys.path = [ os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) ] + sys.path
-from ambiguous import decorator
 from ambiguous.decorator import is_self
 
 
@@ -29,6 +28,7 @@ class DecoratorIsSelfTest(unittest.TestCase):
 
         self.assertTrue(Foo().foo())
         self.assertFalse(Foo().bar())
+        self.assertFalse(Foo.bar())
         self.assertFalse(Foo().baz('baz'))
 
 
@@ -70,6 +70,10 @@ class DecoratorIsSelfTest(unittest.TestCase):
         )
         self.assertEqual(
             (False, 123),
+            Foo.bar(123)
+        )
+        self.assertEqual(
+            (False, 123),
             Foo().baz(123)
         )
 
@@ -97,6 +101,7 @@ class DecoratorIsSelfTest(unittest.TestCase):
 
         self.assertTrue(Baz().foo())
         self.assertFalse(Baz().bar())
+        self.assertFalse(Baz.bar())
         self.assertFalse(Baz().baz())
 
 
