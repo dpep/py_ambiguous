@@ -10,16 +10,16 @@ class AmbiguousType(object):
   pass
 
 
-def ambiguous_method(func, *args):
-  wrapper = partial(func, *args)
+def ambiguous_method(func, *args, **kwargs):
+  wrapper = partial(func, *args, **kwargs)
 
   class AmbiguousMethod(AmbiguousType):
-      def __call__(self, *args):
-        return wrapper(*args)
+      def __call__(self, *args, **kwargs):
+        return wrapper(*args, **kwargs)
 
   for op in ops:
-    def exec_op(op, *args):
-      return getattr(wrapper(), op)(*args)
+    def exec_op(op, *args, **kwargs):
+      return getattr(wrapper(), op)(*args, **kwargs)
 
     setattr(AmbiguousMethod, op, partial(exec_op, op))
 
