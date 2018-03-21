@@ -33,8 +33,7 @@ class DecoratorTest(unittest.TestCase):
         '''ensure basic wrapper function works'''
 
         @suffix
-        def abc(repeat=1):
-            return 'abc' * repeat
+        def abc(repeat=1): return 'abc' * repeat
 
         self.assertEquals('abc_abc', abc())
         self.assertEquals('abcabc_abc', abc(repeat=2))
@@ -47,8 +46,7 @@ class DecoratorTest(unittest.TestCase):
 
     def test_kwargs(self):
         @suffix(str_='zzz')
-        def xyz(repeat=1):
-            return 'xyz' * repeat
+        def xyz(repeat=1): return 'xyz' * repeat
 
         self.assertEquals('xyz_zzz', xyz())
         self.assertEquals('xyzxyz_zzz', xyz(2))
@@ -56,8 +54,7 @@ class DecoratorTest(unittest.TestCase):
 
     def test_args(self):
         @suffix('123')
-        def qqq():
-            return 'qqq'
+        def qqq(): return 'qqq'
 
         self.assertEquals('qqq_123', qqq())
 
@@ -65,26 +62,22 @@ class DecoratorTest(unittest.TestCase):
     def test_many_args(self):
         # basic decorator
         @prefix
-        def pre():
-            return 'pre'
+        def pre(): return 'pre'
         self.assertEquals('abc_pre', pre())
 
         # with a positional arg
         @prefix('123')
-        def foo():
-            return 'foo'
+        def foo(): return 'foo'
         self.assertEquals('123_foo', foo())
 
         # multiple args
         @prefix('456', 2)
-        def bar():
-            return 'bar'
+        def bar(): return 'bar'
         self.assertEquals('456_barbar', bar())
 
         # args and kwargs
         @prefix('789', repeat=3)
-        def baz():
-            return 'baz'
+        def baz(): return 'baz'
         self.assertEquals('789_bazbazbaz', baz())
 
 
@@ -181,8 +174,7 @@ class DecoratorTest(unittest.TestCase):
     def test_wrapper(self):
         assert 'suffix' == suffix.__name__
 
-        def foo():
-            pass
+        def foo(): pass
 
         assert 'foo' == decorator(foo).__name__
         assert 'foo' == decorator(foo)(True).__name__
