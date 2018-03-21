@@ -62,12 +62,12 @@ def is_self(wrapper, *args):
   if 0 == len(args):
     return False
 
+  self = args[0]
+
   if type(wrapper) == types.MethodType:
     # convert unbound into function
     # eg. <unbound method Foo.bar> => <function bar>
     wrapper = wrapper.im_func
-
-  self = args[0]
 
   if type(self) != types.InstanceType:
     return False
@@ -84,5 +84,3 @@ def is_self(wrapper, *args):
     wrapper,
     getattr(self, wrapper.__name__).im_func
   )
-
-  member_fn = dict(inspect.getmembers(self))[fn.__name__]
