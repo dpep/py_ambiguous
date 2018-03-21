@@ -84,3 +84,26 @@ def is_self(wrapper, *args):
     wrapper,
     getattr(self, wrapper.__name__).im_func
   )
+
+
+def is_class(wrapper, *args):
+  if 0 == len(args):
+    return False
+
+  cls = args[0]
+  if type(wrapper) == types.MethodType:
+    # convert unbound into function
+    # eg. <unbound method Foo.bar> => <function bar>
+    wrapper = wrapper.im_func
+
+  if type(cls) != types.ClassType:
+    return False
+
+  # does bound instance method exist
+  if not hasattr(cls, wrapper.__name__):
+    return False
+
+  return same_method(
+    wrapper,
+    getattr(cls, wrapper.__name__).im_func
+  )
