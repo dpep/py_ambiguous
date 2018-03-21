@@ -1,4 +1,7 @@
+import types
 from functools import partial, wraps
+
+from .inspector import same_method
 
 
 __all__ = [ 'decorator' ]
@@ -50,3 +53,33 @@ def decorator(decorator_fn):
 
 
   return wrapper
+
+
+def is_self(wrapper, *args):
+  if 0 == len(args):
+    return False
+
+  if type(wrapper) == types.MethodType:
+    # convert unbound into function
+    # eg. <unbound method Foo.bar> => <function bar>
+    wrapper = wrapper.im_func
+
+  self = args[0]
+
+  if type(self) != types.InstanceType:
+    return False
+
+  if type(self.__class__) != types.ClassType:
+    return False
+
+  # does bound instance method exist
+  if not hasattr(self, wrapper.__name__):
+    return False
+
+  # compare wrapper with unbound class method
+  return same_method(
+    wrapper,
+    getattr(self, wrapper.__name__).im_func
+  )
+
+  member_fn = dict(inspect.getmembers(self))[fn.__name__]

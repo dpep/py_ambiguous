@@ -14,9 +14,11 @@ __all__ = [
 
 import sys
 
-from ambiguous import *
-from decorator import decorator
-from thing_or_things import thing_or_things
+from .ambiguous import *
+from .decorator import decorator
+from .thing_or_things import thing_or_things
+from .inspector import same_method
+
 
 
 # define some aliases

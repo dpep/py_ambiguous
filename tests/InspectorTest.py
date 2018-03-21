@@ -5,65 +5,35 @@ import sys
 import unittest
 
 sys.path = [ os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) ] + sys.path
-from ambiguous import decorator, is_self
-
-from functools import wraps
-
-class DecoratorTest(unittest.TestCase):
-
-    # def test_is_self(self):
-    #     class Foo():
-    #         def foo(self):
-    #             return is_self(Foo.foo, self)
-
-    #         @classmethod
-    #         def bar(cls):
-    #             return is_self(Foo.bar, cls)
-
-    #         @staticmethod
-    #         def baz(arg):
-    #             return is_self(Foo.baz, arg)
+from ambiguous.inspector import same_method
 
 
-    #     self.assertTrue(Foo().foo())
-    #     self.assertFalse(Foo().bar())
-    #     self.assertFalse(Foo().baz('baz'))
+class InspectorTest(unittest.TestCase):
 
+    def test_same_method(self):
+        def foo(): pass
+        def bar(): pass
 
-    # def test_sanity(self):
-    #     def func(arg):
-    #         return is_self(func, arg)
+        self.assertTrue(same_method(foo, foo))
+        self.assertFalse(same_method(foo, bar))
 
-    #     self.assertFalse(func('func'))
+        # check lamdas
+        lambda1 = lambda: True
+        lambda2 = lambda: True
+        self.assertTrue(same_method(lambda1, lambda1))
+        self.assertFalse(same_method(lambda1, lambda2))
 
+        # same line number
+        lambda1 = lambda: True; lambda2 = lambda: True
+        self.assertTrue(same_method(lambda1, lambda1))
+        self.assertFalse(same_method(lambda1, lambda2))
 
-    def test_is_self_decorator(self):
-        def check_self(fn):
-            @wraps(fn)
-            def wrapper(*args, **kwargs):
-                return args and is_self(fn, args[0], check_self)
-            return wrapper
+        # introspection
+        self.assertTrue(same_method(same_method, same_method))
 
-
-        class Foo():
-            @check_self
-            def foo(self):
-                pass
-
-            @classmethod
-            @check_self
-            def bar(cls):
-                pass
-
-            @staticmethod
-            @check_self
-            def baz(arg):
-                pass
-
-
-        self.assertTrue(Foo().foo())
-        # self.assertFalse(Foo().bar())
-        # self.assertFalse(Foo().baz('baz'))
+        # instance methods
+        self.assertTrue(same_method(self.assertTrue, self.assertTrue))
+        self.assertFalse(same_method(self.assertTrue, self.assertFalse))
 
 
 if __name__ == '__main__':
