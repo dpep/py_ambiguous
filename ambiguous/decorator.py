@@ -64,26 +64,27 @@ def is_self(wrapper, *args):
 
   self = args[0]
 
-  if type(wrapper) == types.MethodType:
-    # convert unbound into function
-    # eg. <unbound method Foo.bar> => <function bar>
-    wrapper = wrapper.im_func
-
   if type(self) != types.InstanceType:
     return False
-
   if type(self.__class__) != types.ClassType:
     return False
 
-  # does bound instance method exist
-  if not hasattr(self, wrapper.__name__):
+  if type(wrapper) == types.MethodType:
+    if wrapper.im_class != self.__class__:
+      return False
+
+    # convert class method into function
+    # eg. <unbound method Foo.bar> => <function bar>
+    wrapper = wrapper.im_func
+
+  # does class method exist
+  bound_fn = getattr(self, wrapper.__name__, None)
+  if not bound_fn or type(bound_fn) != types.MethodType:
     return False
 
   # compare wrapper with unbound class method
-  return same_method(
-    wrapper,
-    getattr(self, wrapper.__name__).im_func
-  )
+  unbound_fn = getattr(bound_fn, 'im_func', bound_fn)
+  return same_method(wrapper, unbound_fn)
 
 
 def is_class(wrapper, *args):
@@ -91,15 +92,18 @@ def is_class(wrapper, *args):
     return False
 
   cls = args[0]
-  if type(wrapper) == types.MethodType:
-    # convert unbound into function
-    # eg. <unbound method Foo.bar> => <function bar>
-    wrapper = wrapper.im_func
-
   if type(cls) != types.ClassType:
     return False
 
-  # does bound instance method exist
+  if type(wrapper) == types.MethodType:
+    if wrapper.im_self != cls:
+      return False
+
+    # convert class method into function
+    # eg. <unbound method Foo.bar> => <function bar>
+    wrapper = wrapper.im_func
+
+  # does class method exist
   if not hasattr(cls, wrapper.__name__):
     return False
 
