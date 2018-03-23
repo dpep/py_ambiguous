@@ -57,14 +57,18 @@ def selfish(obj, name='self'):
         # not a class method
         continue
 
-      if not method.im_self and cls == method.im_class:
-        # found an instance method that's not inherited
+      if cls != (method.im_self or method.im_class):
+        # skip inherited methods
+        continue
 
-        # make unbound method selfish
-        wrapper = selfish(method.im_func, name)
+      wrapper = selfish(method.im_func, name)
 
-        # bind new selfish method to class
-        setattr(cls, method.__name__, wrapper)
+      if method.im_self:
+        # class method
+        wrapper = classmethod(selfish(method.im_func, name))
+
+      # bind new selfish method to class
+      setattr(cls, method.__name__, wrapper)
 
     return obj
 

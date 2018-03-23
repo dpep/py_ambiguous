@@ -14,13 +14,17 @@ class Foo():
     @selfish
     def itself(): return self
 
+    @classmethod
+    @selfish
+    def itsclass(): return self
+
 
 @selfish
 class Bar():
     def itself(): return self
 
     @classmethod
-    def classme(cls): return cls
+    def itsclass(): return self
 
     @staticmethod
     def static(): return globals().get('self')
@@ -38,13 +42,15 @@ class SelfishTest(unittest.TestCase):
     def test_basics(self):
         foo = Foo()
         self.assertEquals(foo, foo.itself())
+        self.assertEquals(Foo, foo.itsclass())
+        self.assertEquals(Foo, Foo.itsclass())
 
 
     def test_class_wrapper(self):
         bar = Bar()
         self.assertEquals(bar, bar.itself())
-        self.assertEquals(Bar, bar.classme())
-        self.assertEquals(Bar, Bar.classme())
+        self.assertEquals(Bar, bar.itsclass())
+        self.assertEquals(Bar, Bar.itsclass())
         self.assertEquals(None, bar.static())
         self.assertEquals(None, Bar.static())
 
