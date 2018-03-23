@@ -8,6 +8,31 @@ because magic makes life more easy
 
 
 ### Usage
+
+#### decorator: because decorators should accept args too
+```
+@decorator
+def suffix(fn, str_='xyz'):
+    '''add a suffix to the result of the wrapped fn'''
+    def wrapper(*args, **kwargs):
+        return '%s_%s' % (fn(*args, **kwargs), str_)
+    return wrapper
+    
+@suffix
+def abc(): return 'abc'
+
+abc()
+> 'abc_xyz'
+
+@suffix('123')
+def count(repeat=1): return '0' * repeat
+
+count()
+> '0_123'
+count(3)
+> '000_123'
+```
+
 #### thing_or_things: merges gets and multigets
 
 ```
@@ -58,30 +83,6 @@ Foo(1).val()
 > 1
 Foo.klass()
 > Foo
-```
-
-#### decorator: because decorators should accept args too
-```
-@decorator
-def suffix(fn, str_='xyz'):
-    '''add a suffix to the result of the wrapped fn'''
-    def wrapper(*args, **kwargs):
-        return '%s_%s' % (fn(*args, **kwargs), str_)
-    return wrapper
-    
-@suffix
-def abc(): return 'abc'
-
-abc()
-> 'abc_xyz'
-
-@suffix('123')
-def count(repeat=1): return '0' * repeat
-
-count()
-> '0_123'
-count(3)
-> '000_123'
 ```
 
 #### what, parentheses optional?!
