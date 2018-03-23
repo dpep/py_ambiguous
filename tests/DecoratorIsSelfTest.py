@@ -114,6 +114,30 @@ class DecoratorIsSelfTest(unittest.TestCase):
         self.assertFalse(Baz().baz())
 
 
+    def test_trickery(self):
+        def check_self(fn):
+            @wraps(fn)
+            def wrapper(*args):
+                return is_self(wrapper, *args)
+            return wrapper
+
+        class Foo():
+            @check_self
+            def foo(self): pass
+
+            @staticmethod
+            @check_self
+            def bar(arg): pass
+
+        # masquerade
+        class Bar():
+            def bar(): pass
+
+        self.assertTrue(Foo().foo())
+        self.assertFalse(Foo().bar(Bar))
+        self.assertFalse(Foo().bar(Bar()))
+
+
 
 if __name__ == '__main__':
     unittest.main()

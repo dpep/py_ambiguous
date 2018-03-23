@@ -65,7 +65,7 @@ def decorator(decorator_fn):
   return wrapper
 
 
-def is_self(wrapper, *args):
+def is_self(class_method, *args):
   if 0 == len(args):
     return False
 
@@ -74,33 +74,36 @@ def is_self(wrapper, *args):
   if type(self) != types.InstanceType:
     return False
 
-  if type(self.__class__) != types.ClassType:
-    return False
-
-  if type(wrapper) == types.MethodType:
-    if wrapper.im_self:
+  if type(class_method) == types.MethodType:
+    if class_method.im_self:
       # class method
       return False
 
-    if wrapper.im_class != self.__class__:
+    if class_method.im_class != self.__class__:
       # instance method, but for different class
       return False
 
     # convert class method into function
     # eg. <unbound method Foo.bar> => <function bar>
-    wrapper = wrapper.im_func
+    function = class_method.im_func
+  elif type(class_method) == types.FunctionType:
+    # used via decorators on class methods
+    function = class_method
+  else:
+    raise ValueError('expected class method, found: %s' % class_method)
 
   # does class method exist
-  bound_fn = getattr(self, wrapper.__name__, None)
+  bound_fn = getattr(self, function.__name__, None)
+
   if not bound_fn or type(bound_fn) != types.MethodType:
     return False
 
   # compare wrapper with unbound class method
   unbound_fn = getattr(bound_fn, 'im_func', bound_fn)
-  return same_method(wrapper, unbound_fn)
+  return same_method(function, unbound_fn)
 
 
-def is_class(wrapper, *args):
+def is_class(class_method, *args):
   if 0 == len(args):
     return False
 
@@ -109,24 +112,31 @@ def is_class(wrapper, *args):
   if type(cls) != types.ClassType:
     return False
 
-  if type(wrapper) == types.MethodType:
-    if not wrapper.im_self:
+  if type(class_method) == types.MethodType:
+    if not class_method.im_self:
       # instance method
       return False
 
-    if wrapper.im_self != cls:
+    if class_method.im_self != cls:
       # class method, but for different class
       return False
 
     # convert class method into function
     # eg. <unbound method Foo.bar> => <function bar>
-    wrapper = wrapper.im_func
+    function = class_method.im_func
+  elif type(class_method) == types.FunctionType:
+    # used via decorators on class methods
+    function = class_method
+  else:
+    raise ValueError('expected class method, found: %s' % class_method)
 
   # does class method exist
-  if not hasattr(cls, wrapper.__name__):
+  unbound_fn = getattr(cls, function.__name__, None)
+
+  if not unbound_fn or type(unbound_fn) != types.MethodType:
     return False
 
   return same_method(
-    wrapper,
-    getattr(cls, wrapper.__name__).im_func
+    function,
+    getattr(cls, function.__name__).im_func
   )
