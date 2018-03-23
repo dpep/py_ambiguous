@@ -8,7 +8,7 @@ because magic makes life more easy
 
 
 ### Usage
-#### thing_or_things: blurring the line between gets and multigets
+#### thing_or_things: merges gets and multigets
 
 ```
 @thing_or_things
@@ -23,8 +23,17 @@ itself(1, 2, 3)
 > { 1 : 1, 2 : 2, 3 : 3 }
   
 
-# also accepts keyword arguments
-@ambiguous.thing_or_things
+# optional offset
+@thing_or_things(offset=1)
+def prefix(prefix, args):
+  return { x : "%s_%s" % (prefix, x) for x in args }
+
+prefix('abc', 1, 2)
+> { 1 : 'abc_1', 2 : 'abc_2' }
+
+
+# keyword arguments get passed through
+@thing_or_things
 def multiply(args, factor=1):
   return { x : x * factor for x in args }
 
@@ -32,15 +41,6 @@ multiply(2, factor=2)
 > 4
 multiply(1, 2, factor=3)
 > { 1 : 3, 2 : 6 }
-
-
-# and an offset
-@ambiguous.thing_or_things(offset=1)
-def prefix(prefix, args):
-  return { x : "%s%s" % (prefix, x) for x in args }
-
-prefix('abc', 1, 2)
-> { 1 : 'abc1', 2 : 'abc2' }
 ```
 
 #### selfish: making 'self' implicit
@@ -48,10 +48,16 @@ prefix('abc', 1, 2)
 @selfish
 class Foo():
     def __init__(val): self.val = val
+    
     def val(): return self.val
+    
+    @classmethod
+    def klass(): return self
 
 Foo(1).val()
 > 1
+Foo.klass()
+> Foo
 ```
 
 #### decorator: because decorators should accept args too
