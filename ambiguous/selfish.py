@@ -45,7 +45,7 @@ def selfish(obj, name='self'):
       return res
 
     # annotate method as selfish
-    setattr(wrapper, '_selfish', True)
+    setattr(wrapper, '_selfish', name)
     return wrapper
 
   elif isclass(obj):
