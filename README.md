@@ -11,7 +11,7 @@ because magic makes life more easy
 #### thing_or_things: blurring the line between gets and multigets
 
 ```
-@ambiguous.thing_or_things
+@thing_or_things
 def itself(args):
   return { x : x for x in args }
 
@@ -43,6 +43,41 @@ prefix('abc', 1, 2)
 > { 1 : 'abc1', 2 : 'abc2' }
 ```
 
+#### selfish: making 'self' implicit
+```
+@selfish
+class Foo():
+    def __init__(val): self.val = val
+    def val(): return self.val
+
+Foo(1).val()
+> 1
+```
+
+#### decorator: because decorators should accept args too
+```
+@decorator
+def suffix(fn, str_='xyz'):
+    '''add a suffix to the result of the wrapped fn'''
+    def wrapper(*args, **kwargs):
+        return '%s_%s' % (fn(*args, **kwargs), str_)
+    return wrapper
+    
+@suffix
+def abc(): return 'abc'
+
+abc()
+> 'abc_xyz'
+
+@suffix('123')
+def count(repeat=1): return '0' * repeat
+
+count()
+> '0_123'
+count(3)
+> '000_123'
+```
+
 #### what, parentheses optional?!
 ```
 import ambiguous
@@ -52,9 +87,13 @@ def foo():
   return 'foo'
 
 print foo
+> 'foo'
 print foo()
-print foo + 'abc'
+> 'foo'
+foo + 'abc'
+> 'fooabc'
 ```
 
-### Caveats
+###### Caveats
+- warning: still highly experimental
 - Does not work with functions returning objects not subclassing `object`.
