@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import inspect
 import os
 import sys
 import unittest
@@ -62,6 +63,29 @@ class SelfishTest(unittest.TestCase):
         fn_self.assertEquals(foo, foo.this())
 
 
+    def test_instance_var(fn_self):
+        @selfish
+        class Foo():
+            def __init__(val): self.val = val
+            def get(): return self.val
+
+        fn_self.assertEquals(123, Foo(123).get())
+
+
+    def test_class_inheritence(fn_self):
+        @selfish
+        class Foo(dict):
+            def double():
+                return [ x * 2 for x in self.values() ]
+
+        # inherited methods are unaffected
+        fn_self.assertEquals(1, len(Foo({ 'a' : 1 })))
+        fn_self.assertEquals([ 1 ], Foo({ 'a' : 1 }).values())
+
+        # new methods are selfish
+        fn_self.assertEquals([ 2 ], Foo({ 'a' : 1 }).double())
+
+
     def test_closure(self):
         with self.assertRaises(ValueError):
             @selfish
@@ -73,6 +97,7 @@ class SelfishTest(unittest.TestCase):
     def test_wrapper(self):
         # ensure selfish methods are wrapped up properly
 
+        self.assertTrue(inspect.isclass(Foo))
         self.assertEquals('Foo', Foo.__name__)
 
         self.assertEquals(
