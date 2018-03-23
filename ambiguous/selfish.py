@@ -1,7 +1,7 @@
 import types
 
 from functools import wraps
-from inspect import getmembers
+from inspect import getmembers, isclass
 
 from .decorator import decorator, is_self
 
@@ -48,7 +48,7 @@ def selfish(obj, name='self'):
     setattr(wrapper, '_selfish', True)
     return wrapper
 
-  elif type(obj) == types.ClassType:
+  elif isclass(obj):
     # make all class instance methods selfish
     cls = obj
 
@@ -58,7 +58,7 @@ def selfish(obj, name='self'):
         continue
 
       if not method.im_self and cls == method.im_class:
-        # found an instance method
+        # found an instance method that's not inherited
 
         # make unbound method selfish
         wrapper = selfish(method.im_func, name)
