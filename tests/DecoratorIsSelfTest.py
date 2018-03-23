@@ -25,12 +25,11 @@ class DecoratorIsSelfTest(unittest.TestCase):
             def baz(arg):
                 return is_self(Foo.baz, arg)
 
-        foo = Foo()
-
         self.assertTrue(Foo().foo())
         self.assertFalse(Foo.bar())
         self.assertFalse(Foo().bar())
-        self.assertFalse(Foo.baz(foo))
+
+        foo = Foo()
         self.assertFalse(Foo.baz(foo))
         self.assertFalse(Foo().baz(foo))
 
