@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import inspect
 import os
 import sys
 import unittest
@@ -196,6 +197,56 @@ class DecoratorTest(unittest.TestCase):
         def baz(arg): pass
         self.assertEquals('baz', baz.__name__)
         self.assertEquals('baz', bar(baz).__name__)
+
+
+    def test_obj(self):
+        @decorator
+        def double(fn):
+            def wrapper(*args):
+                return fn(*args) * 2
+            return wrapper
+
+
+        class Foo():
+            def itself(self, val): return val
+
+            @double
+            def val(self, val): return val
+
+
+        self.assertEquals(1, Foo().itself(1))
+        self.assertEquals(2, double(Foo().itself)(1))
+
+        self.assertEquals(2, Foo().val(1))
+
+
+    def test_obj_wrapper(self):
+        @decorator
+        def itself(obj): return obj
+
+        @itself
+        class Foo():
+            def one(self): return 1
+
+        self.assertTrue(inspect.isclass(Foo))
+        self.assertEquals('Foo', Foo.__name__)
+        self.assertEquals(1, Foo().one())
+
+
+        @decorator
+        def upgrade(obj):
+            klass = type('Upgrade', (obj,), {})
+            klass.three = lambda self: 3
+            return klass
+
+        @upgrade
+        class Bar(dict):
+            def two(self): return 2
+
+        self.assertEquals('Upgrade', Bar.__name__)
+        self.assertTrue(issubclass(Bar, dict))
+        self.assertEquals(2, Bar().two())
+        self.assertEquals(3, Bar().three())
 
 
 

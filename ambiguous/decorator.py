@@ -1,5 +1,7 @@
 import types
+
 from functools import partial, wraps, update_wrapper
+from inspect import isfunction
 
 from .inspector import same_method
 
@@ -14,15 +16,20 @@ may not be callable when used via `@decorator`.
 def decorator(decorator_fn):
   @wraps(decorator_fn)
   def wrapper(*args, **kwargs):
-    # called with no args
+    # called with no args...try again
     if not args and not kwargs:
       return wrapper
 
-
     if args:
       if callable(args[0]):
-        # apply desired decorator and mask signature
-        return update_wrapper(decorator_fn(*args, **kwargs), args[0])
+        # apply desired decorator
+        decorated = decorator_fn(*args, **kwargs)
+
+        if isfunction(decorated):
+          # mask signature
+          decorated = update_wrapper(decorated, args[0])
+
+        return decorated
 
       # passed an arg, but not the function to decorate. wrap
       # and wait for more.
@@ -66,11 +73,17 @@ def is_self(wrapper, *args):
 
   if type(self) != types.InstanceType:
     return False
+
   if type(self.__class__) != types.ClassType:
     return False
 
   if type(wrapper) == types.MethodType:
+    if wrapper.im_self:
+      # class method
+      return False
+
     if wrapper.im_class != self.__class__:
+      # instance method, but for different class
       return False
 
     # convert class method into function
@@ -92,11 +105,17 @@ def is_class(wrapper, *args):
     return False
 
   cls = args[0]
+
   if type(cls) != types.ClassType:
     return False
 
   if type(wrapper) == types.MethodType:
+    if not wrapper.im_self:
+      # instance method
+      return False
+
     if wrapper.im_self != cls:
+      # class method, but for different class
       return False
 
     # convert class method into function
