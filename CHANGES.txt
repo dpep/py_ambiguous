@@ -1,3 +1,34 @@
+v0.2.1, 2018-03-23
+    2488fcb wire things up
+    0104741 Update README.md
+    3e35c37 expand selfish to cover class methods also
+    60be346 more testing, cleanup
+    8b0d3ec expand selfish test coverage
+    9716bbc decorate classes properly
+    a7bc3d1 Update README.md
+    543811d Update README.md
+    9cd892c add selfish decorator, because who has time to type self everywhere
+    74f7647 upgrades to fix some bugs involving static methods
+    cb3fd5a expand test coverage
+    7d1c5dc add kwargs
+    6b12288 auto wrap decorator
+    4e972cf add decorator.is_class
+    20a0481 cleanup
+    1e6fe20 allow call with empty args
+    a1af3ff add decorator.is_self and inspector module, plus tests
+    15643e7 add __all__
+    a07f278 more tests
+    efaf3f9 masquerade better
+    9feaa2c better error handling for thing_or_things
+    8d1302e cleanup
+    8c5770f fix sequential arg bug, expand tests
+    ce56d34 add lamda coverage, clean up names
+    ad0af45 enable positional args in addition to kwargs. add tests
+    fb66040 add test coverage for ambiguous decorator
+    db8815b add tests to cover object instance/class/static methods
+    978e2b4 add test to cover thing or things used on class methods
+    2fede34 Update README.md
+    a04d20c add thing_or_things plus tests and module import cleanup
 v0.1.0, 2018-02-22
     adc0cab cleanup
     15e3019 refactor, mascarade module to enable @ambiguous
