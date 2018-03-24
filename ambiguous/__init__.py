@@ -9,7 +9,6 @@ __all__ = [
   'ambiguous_staticmethod',
   'decorator',
   'thing_or_things',
-  'selfish',
 ]
 
 
@@ -18,7 +17,6 @@ import sys
 from .ambiguous import *
 from .decorator import decorator
 from .inspector import same_method
-from .selfish import selfish
 from .thing_or_things import thing_or_things
 
 
