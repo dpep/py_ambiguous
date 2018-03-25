@@ -7,23 +7,23 @@ import unittest
 from functools import wraps
 
 sys.path = [ os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) ] + sys.path
-from ambiguous.decorator import is_class
+from ambiguous.inspector import within_class
 
 
 class DecoratorIsClassTest(unittest.TestCase):
 
-    def test_is_class(self):
+    def test_within_class(self):
         class Foo():
             def foo(self):
-                return is_class(Foo.foo, self)
+                return within_class(Foo.foo, self)
 
             @classmethod
             def bar(cls):
-                return is_class(Foo.bar, cls)
+                return within_class(Foo.bar, cls)
 
             @staticmethod
             def baz(arg):
-                return is_class(Foo.baz, arg)
+                return within_class(Foo.baz, arg)
 
         foo = Foo()
 
@@ -35,7 +35,7 @@ class DecoratorIsClassTest(unittest.TestCase):
 
 
     def test_sanity(self):
-        def foo(arg): return is_class(foo, arg)
+        def foo(arg): return within_class(foo, arg)
         self.assertFalse(foo('str'))
 
 
@@ -43,7 +43,7 @@ class DecoratorIsClassTest(unittest.TestCase):
         def check_self(fn):
             @wraps(fn)
             def wrapper(*args):
-                return is_class(wrapper, *args)
+                return within_class(wrapper, *args)
             return wrapper
 
         class Foo():
@@ -73,7 +73,7 @@ class DecoratorIsClassTest(unittest.TestCase):
         def check_self(fn):
             @wraps(fn)
             def wrapper(*args):
-                return is_class(wrapper, *args)
+                return within_class(wrapper, *args)
             return wrapper
 
         class Foo():

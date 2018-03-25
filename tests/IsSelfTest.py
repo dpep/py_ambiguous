@@ -7,14 +7,14 @@ import unittest
 from functools import wraps
 
 sys.path = [ os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) ] + sys.path
-from ambiguous.decorator import is_self
+from ambiguous.inspector import within_self
 
 
 
 def check_self(fn):
     @wraps(fn)
     def wrapper(*args):
-        return is_self(wrapper, *args)
+        return within_self(wrapper, *args)
     return wrapper
 
 
@@ -24,15 +24,15 @@ class DecoratorIsSelfTest(unittest.TestCase):
     def test_in_self(self):
         class Foo:
             def foo(self):
-                return is_self(Foo.foo, self)
+                return within_self(Foo.foo, self)
 
             @classmethod
             def bar(cls):
-                return is_self(Foo.bar, cls)
+                return within_self(Foo.bar, cls)
 
             @staticmethod
             def baz(arg):
-                return is_self(Foo.baz, arg)
+                return within_self(Foo.baz, arg)
 
         self.assertTrue(Foo().foo())
         self.assertFalse(Foo.bar())
@@ -46,8 +46,8 @@ class DecoratorIsSelfTest(unittest.TestCase):
     def test_sanity(self):
         def foo(arg): pass
 
-        self.assertFalse(is_self(foo, foo))
-        self.assertFalse(is_self(foo, 'str'))
+        self.assertFalse(within_self(foo, foo))
+        self.assertFalse(within_self(foo, 'str'))
 
 
     def test_decorator(self):
@@ -79,7 +79,7 @@ class DecoratorIsSelfTest(unittest.TestCase):
             def check_self(fn):
                 @wraps(fn)
                 def wrapper(*args):
-                    return is_self(wrapper, *args)
+                    return within_self(wrapper, *args)
                 return wrapper
 
         class Baz:
