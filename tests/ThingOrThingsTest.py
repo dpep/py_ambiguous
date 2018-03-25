@@ -70,7 +70,7 @@ class ThingOrThingTest(unittest.TestCase):
         self.assertEquals({ 1 : 2, 2 : 4 }, multiply(*[ 1, 2 ], factor=2))
 
 
-    def test_prefix(self):
+    def test_offset(self):
         @thing_or_things(offset=1)
         def prefix(prefix, args):
           return { x : "%s%s" % (prefix, x) for x in args }
@@ -122,6 +122,16 @@ class ThingOrThingTest(unittest.TestCase):
         self.assertEquals(3, Foo.static_it(3))
         self.assertEquals({ 3 : 3 }, Foo.static_it([ 3 ]))
         self.assertEquals({ 1 : 1, 2 : 2 }, Foo.static_it(1, 2))
+
+
+    def test_wrapper(self):
+        self.assertEquals('itself', itself.__name__)
+
+        class Foo:
+            @thing_or_things
+            def foo(): pass
+
+        self.assertEquals('foo', Foo.foo.__name__)
 
 
     def test_return_type(self):
