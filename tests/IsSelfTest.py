@@ -118,6 +118,14 @@ class DecoratorIsSelfTest(unittest.TestCase):
         self.assertFalse(Foo().bar(Bar()))
 
 
+    def test_inheritence(self):
+        class Foo(object):
+            @check_self
+            def foo(self): pass
+
+        self.assertTrue(Foo().foo())
+
+
 
 if __name__ == '__main__':
     unittest.main()
