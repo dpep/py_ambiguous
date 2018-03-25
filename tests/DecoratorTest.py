@@ -31,8 +31,23 @@ def prefix(fn, pre='abc', repeat=1):
 class DecoratorTest(unittest.TestCase):
 
     def test_basics(self):
-        '''ensure basic wrapper function works'''
+        @decorator
+        def power(fn, times=2):
+            return lambda x: fn(x) ** times
 
+        @power
+        def squared(x): return x
+        self.assertEquals(1, squared(1))
+        self.assertEquals(4, squared(2))
+
+        @power(3)
+        def cubed(x): return x
+        self.assertEquals(1, cubed(1))
+        self.assertEquals(8, cubed(2))
+        self.assertEquals(27, cubed(3))
+
+
+    def test_strings(self):
         @suffix
         def abc(repeat=1): return 'abc' * repeat
 
@@ -230,6 +245,7 @@ class DecoratorTest(unittest.TestCase):
 
         self.assertTrue(inspect.isclass(Foo))
         self.assertEquals('Foo', Foo.__name__)
+        self.assertEquals('one', Foo.one.__name__)
         self.assertEquals(1, Foo().one())
 
 
@@ -247,6 +263,31 @@ class DecoratorTest(unittest.TestCase):
         self.assertTrue(issubclass(Bar, dict))
         self.assertEquals(2, Bar().two())
         self.assertEquals(3, Bar().three())
+
+
+    def test_missing_arg(self):
+        @decorator
+        def mult(fn, factor): pass
+
+        with self.assertRaises(TypeError):
+            @mult
+            def one(): pass
+
+
+    def test_double_decorate(self):
+        @decorator
+        def double_that(fn):
+            return lambda x: fn(x) * 2
+
+        @double_that
+        def double(x): return x
+
+        self.assertEquals(2, double(1))
+        self.assertEquals(4, double(2))
+
+        quadruple = double_that(double)
+        self.assertEquals(4, quadruple(1))
+        self.assertEquals(8, quadruple(2))
 
 
 
