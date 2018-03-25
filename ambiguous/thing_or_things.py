@@ -38,12 +38,12 @@ def thing_or_things(fn, offset=0):
     # ensure all things are mapped
     missing = thing_set - key_set
     if missing:
-      raise KeyError('thing missing: %s' % missing.pop())
+      raise KeyError('missing things: %s' % list(missing))
 
     # ensure there's no extra things
     extra = key_set - thing_set
     if extra:
-      raise KeyError('extra thing: %s' % extra.pop())
+      raise KeyError('extra things: %s' % list(extra))
 
     # unpack as needed
     if not unpacked and 1 == len(things):
