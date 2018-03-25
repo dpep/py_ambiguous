@@ -10,10 +10,19 @@ sys.path = [ os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) ] + 
 from ambiguous.decorator import is_self
 
 
+
+def check_self(fn):
+    @wraps(fn)
+    def wrapper(*args):
+        return is_self(wrapper, *args)
+    return wrapper
+
+
 class DecoratorIsSelfTest(unittest.TestCase):
 
-    def test_is_self(self):
-        class Foo():
+
+    def test_in_self(self):
+        class Foo:
             def foo(self):
                 return is_self(Foo.foo, self)
 
@@ -35,59 +44,37 @@ class DecoratorIsSelfTest(unittest.TestCase):
 
 
     def test_sanity(self):
-        def foo(arg): return is_self(foo, arg)
-        self.assertFalse(foo('str'))
+        def foo(arg): pass
+
+        self.assertFalse(is_self(foo, foo))
+        self.assertFalse(is_self(foo, 'str'))
 
 
     def test_decorator(self):
-        def check_self(fn):
-            @wraps(fn)
-            def wrapper(*args):
-                return (
-                    is_self(wrapper, *args),
-                    fn(*args),
-                )
-            return wrapper
-
-        class Foo():
+        class Foo:
             @check_self
-            def foo(self, arg): return arg
+            def foo(self): pass
 
             @classmethod
             @check_self
-            def bar(cls, arg): return arg
+            def bar(cls): pass
 
             @staticmethod
             @check_self
-            def baz(arg): return arg
+            def baz(arg): pass
 
 
         foo = Foo()
 
-        self.assertEqual(
-            (True, foo),
-            Foo().foo(foo)
-        )
-        self.assertEqual(
-            (False, foo),
-            Foo.bar(foo)
-        )
-        self.assertEqual(
-            (False, foo),
-            Foo().bar(foo)
-        )
-        self.assertEqual(
-            (False, foo),
-            Foo.baz(foo)
-        )
-        self.assertEqual(
-            (False, foo),
-            Foo().baz(foo)
-        )
+        self.assertTrue(Foo().foo(foo))
+        self.assertFalse(Foo.bar(foo))
+        self.assertFalse(Foo().bar(foo))
+        self.assertFalse(Foo.baz(foo))
+        self.assertFalse(Foo().baz(foo))
 
 
     def test_class_decorator(self):
-        class Bar():
+        class Bar:
             @staticmethod
             def check_self(fn):
                 @wraps(fn)
@@ -95,7 +82,7 @@ class DecoratorIsSelfTest(unittest.TestCase):
                     return is_self(wrapper, *args)
                 return wrapper
 
-        class Baz():
+        class Baz:
             @Bar.check_self
             def foo(self): pass
 
@@ -114,14 +101,8 @@ class DecoratorIsSelfTest(unittest.TestCase):
         self.assertFalse(Baz().baz())
 
 
-    def test_trickery(self):
-        def check_self(fn):
-            @wraps(fn)
-            def wrapper(*args):
-                return is_self(wrapper, *args)
-            return wrapper
-
-        class Foo():
+    def test_duck_typing(self):
+        class Foo:
             @check_self
             def foo(self): pass
 
@@ -129,9 +110,8 @@ class DecoratorIsSelfTest(unittest.TestCase):
             @check_self
             def bar(arg): pass
 
-        # masquerade
-        class Bar():
-            def bar(): pass
+        class Bar:
+            def bar(self): pass
 
         self.assertTrue(Foo().foo())
         self.assertFalse(Foo().bar(Bar))
