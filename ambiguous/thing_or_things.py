@@ -1,3 +1,5 @@
+import inspect
+
 from collections import Iterable
 from functools import wraps
 
@@ -8,24 +10,63 @@ __all__ = [ 'thing_or_things' ]
 
 
 @decorator
-def thing_or_things(fn, offset=0):
-  def wrapper(*args, **kwargs):
-    if len(args) < offset:
+def thing_or_things(fn, arg_name=None):
+  spec = inspect.getargspec(fn)
+
+  if arg_name:
+    if spec.varargs == arg_name:
+      raise NotImplementedError('argument may not be a varargs')
+
+    if arg_name not in spec.args:
       raise ValueError(
-        '%s() takes at least %d argument (%d given)' % (
-          fn.__name__, offset, len(args),
-        )
+        'specified arg name not in function signature: %s' % arg_name
+      )
+  else:
+    # no args given, determine defaults
+
+    if spec.varargs:
+      raise NotImplementedError(
+        'please specify which arg to use, eg. @thing_or_things(<arg_name>)'
       )
 
-    prefix_args = list(args[:offset])
-    things = list(args[offset:])
+    if not spec.args:
+      raise TypeError('function does not take arguments')
 
-    unpacked = False
-    if 1 == len(things) and isinstance(things[0], (list, set, tuple)):
-        things = things[0]
-        unpacked = True
+    if len(spec.args) == 1:
+      # grab first and only arg
+      arg_name = spec.args[0]
+    elif len(spec.args) - len(spec.defaults) == 1:
+      # if all args have defaults except the first one
+      arg_name = spec.args[0]
+    else:
+      raise ValueError(
+        'please specify which arg to use, eg. @thing_or_things(<arg_name>)'
+      )
 
-    res = fn(*(prefix_args + [ things ]), **kwargs)
+
+  def wrapper(*args, **kwargs):
+    single_thing = False
+
+    # grab specified thing_or_things arg
+    offset = spec.args.index(arg_name)
+
+    if len(args) < len(spec.args) - len(spec.defaults or []):
+      # not enough args...let function raise TypeError
+      fn(*args, **kwargs)
+      assert False, '%s() is missing arguments' % fn.__name__
+
+    if isinstance(args[offset], (list, set, tuple)):
+      # cast to list
+      things = list(args[offset])
+    else:
+      # pack into list
+      things = [ args[offset] ]
+      single_thing = True
+
+    # replace thing_or_things arg and make function call
+    args = list(args)
+    args[offset] = things
+    res = fn(*args, **kwargs)
 
     # check return type
     if not isinstance(res, dict):
@@ -45,7 +86,7 @@ def thing_or_things(fn, offset=0):
       raise KeyError('extra things: %s' % list(extra))
 
     # unpack as needed
-    if not unpacked and 1 == len(things):
+    if single_thing:
       res = res[things[0]]
 
     return res

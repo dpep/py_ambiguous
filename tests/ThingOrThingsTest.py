@@ -19,43 +19,31 @@ class ThingOrThingTest(unittest.TestCase):
 
     def test_basics(self):
         self.assertEquals(3, itself(3))
-        self.assertEquals(3, itself(*[ 3 ]))
 
         self.assertEquals({ 3 : 3 }, itself([ 3 ]))
-        self.assertEquals({ 1 : 1, 2 : 2 }, itself(1, 2))
         self.assertEquals({ 1 : 1, 2 : 2 }, itself([ 1, 2 ]))
-        self.assertEquals({ 1 : 1, 2 : 2 }, itself(*[ 1, 2 ]))
 
 
-    def test_types(self):
-        self.assertEquals('a', itself('a'))
-        self.assertEquals('abc', itself('abc'))
-        self.assertEquals({ 'a' : 'a', 'b' : 'b' }, itself('a', 'b'))
-        self.assertEquals(1.0, itself(1.0))
+    def test_arg_name(self):
+        @thing_or_things('args')
+        def prefix(prefix, args):
+          return { x : "%s%s" % (prefix, x) for x in args }
+
+        self.assertEquals('+1', prefix('+', 1))
+        self.assertEquals({ 1 : '+1' }, prefix('+', [ 1 ]))
+        self.assertEquals({ 1 : '+1', 2: '+2' }, prefix('+', [ 1, 2 ]))
+
+        with self.assertRaises(TypeError):
+            # missing args param
+            prefix('+1')
+
+        with self.assertRaises(TypeError):
+            # unclear which arg is for things
+            @thing_or_things
+            def foo(x, y): pass
 
 
-    def test_empty(self):
-        self.assertEquals({}, itself())
-        self.assertEquals({}, itself([]))
-        self.assertEquals({}, itself(*[]))
-
-
-    def test_collection_types(self):
-        # lists
-        self.assertEquals({ 1 : 1 }, itself(list([ 1 ])))
-        self.assertEquals({ 1 : 1, 2 : 2 }, itself(list([ 1, 2 ])))
-
-        # tuples
-        self.assertEquals(3, itself((3)))
-        self.assertEquals({ 3 : 3 }, itself((3, )))
-        self.assertEquals({ 1 : 1, 2 : 2 }, itself( (1, 2) ))
-
-        # sets
-        self.assertEquals({ 3 : 3 }, itself(set([ 3 ])))
-        self.assertEquals({ 1 : 1, 2 : 2 }, itself(set([ 1, 2 ])))
-
-
-    def test_param(self):
+    def test_default_args(self):
         @thing_or_things
         def multiply(args, factor=1):
           return { x : x * factor for x in args }
@@ -63,41 +51,92 @@ class ThingOrThingTest(unittest.TestCase):
         self.assertEquals(1, multiply(1))
         self.assertEquals(2, multiply(1, factor=2))
         self.assertEquals({ 1 : 2 }, multiply([ 1 ], factor=2))
-
-        self.assertEquals({ 1 : 1, 2 : 2 }, multiply(1, 2))
-        self.assertEquals({ 1 : 2, 2 : 4 }, multiply(1, 2, factor=2))
         self.assertEquals({ 1 : 2, 2 : 4 }, multiply([ 1, 2 ], factor=2))
-        self.assertEquals({ 1 : 2, 2 : 4 }, multiply(*[ 1, 2 ], factor=2))
 
 
-    def test_offset(self):
-        @thing_or_things(offset=1)
-        def prefix(prefix, args):
-          return { x : "%s%s" % (prefix, x) for x in args }
-
-        # empty args
-        self.assertEquals({}, prefix('+'))
-
-        self.assertEquals('+1', prefix('+', 1))
-        self.assertEquals({ 1 : '+1' }, prefix('+', [ 1 ]))
-        self.assertEquals({ 1 : '+1', 2: '+2' }, prefix('+', 1, 2))
-        self.assertEquals({ 1 : '+1', 2: '+2' }, prefix('+', [ 1, 2 ]))
-        self.assertEquals({ 1 : '+1', 2: '+2' }, prefix('+', *[ 1, 2 ]))
+    def test_bad_default_args(self):
+        with self.assertRaises(ValueError):
+            # unclear which arg is for things
+            @thing_or_things
+            def foo(a=1, b=2, c=3): pass
 
         with self.assertRaises(ValueError):
-            # missing prefix param
-            prefix()
+            @thing_or_things
+            def foo(a, b, c=3): pass
+
+        @thing_or_things('things')
+        def foo(a, things, c=3):
+            return { thing : (a, thing, c) for thing in things }
+
+        with self.assertRaises(TypeError):
+            # too few
+            foo(1)
+
+        with self.assertRaises(TypeError):
+            # too many
+            foo(1, 2, 3, 4)
+
+
+    def test_varargs(self):
+        with self.assertRaises(NotImplementedError):
+            @thing_or_things
+            def foo(*args): pass
+
+        with self.assertRaises(NotImplementedError):
+            @thing_or_things
+            def foo(x, *args): pass
+
+        @thing_or_things('ids')
+        def foo(ids, *args):
+            return { x : [x] + list(args) for x in ids }
+        self.assertEquals([1, 'a', 'b'], foo(1, 'a', 'b'))
+
+
+    def test_kwargs(self):
+        @thing_or_things
+        def keywords(things, **kwargs):
+            return { x : kwargs for x in things }
+
+        self.assertEquals({}, keywords(1))
+        self.assertEquals({'a' : 5}, keywords(1, a=5))
+
+
+    def test_no_args(self):
+        with self.assertRaises(TypeError):
+            @thing_or_things
+            def foo(): pass
+
+
+    def test_empty(self):
+        self.assertEquals({}, itself([]))
+
+        with self.assertRaises(TypeError):
+            itself()
+
+
+    def test_many_args(self):
+        @thing_or_things('things')
+        def math(factor, things, sub=1):
+            return { x : x * factor - sub for x in things }
+
+        self.assertEquals(9, math(10, 1))
+        self.assertEquals(19, math(10, 2, 1))
+
+        self.assertEquals(
+            { 1 : 9, 2 : 19 },
+            math(10, [1, 2], 1)
+        )
 
 
     def test_obj_context(self):
         class Foo:
-            @thing_or_things(offset=1)
+            @thing_or_things('args')
             def inst_it(self, args):
                 assert isinstance(self, Foo)
                 return { x : x for x in args }
 
             @classmethod
-            @thing_or_things(offset=1)
+            @thing_or_things('args')
             def cls_it(cls, args):
                 assert cls == Foo
                 return { x : x for x in args }
@@ -111,17 +150,37 @@ class ThingOrThingTest(unittest.TestCase):
         # instance method
         self.assertEquals(3, Foo().inst_it(3))
         self.assertEquals({ 3 : 3 }, Foo().inst_it([ 3 ]))
-        self.assertEquals({ 1 : 1, 2 : 2 }, Foo().inst_it(1, 2))
 
         # cls method
         self.assertEquals(3, Foo.cls_it(3))
         self.assertEquals({ 3 : 3 }, Foo.cls_it([ 3 ]))
-        self.assertEquals({ 1 : 1, 2 : 2 }, Foo.cls_it(1, 2))
 
         # static method
         self.assertEquals(3, Foo.static_it(3))
         self.assertEquals({ 3 : 3 }, Foo.static_it([ 3 ]))
-        self.assertEquals({ 1 : 1, 2 : 2 }, Foo.static_it(1, 2))
+
+
+    def test_types(self):
+        self.assertEquals('a', itself('a'))
+        self.assertEquals('abc', itself('abc'))
+        self.assertEquals(u'abc', itself(u'abc'))
+        self.assertEquals({ 'a' : 'a', 'b' : 'b' }, itself(['a', 'b']))
+        self.assertEquals(1, itself(1))
+        self.assertEquals(1.0, itself(1.0))
+
+
+    def test_collection_types(self):
+        # lists
+        self.assertEquals({ 1 : 1 }, itself(list([ 1 ])))
+        self.assertEquals({ 1 : 1, 2 : 2 }, itself(list([ 1, 2 ])))
+
+        # tuples
+        self.assertEquals({ 3 : 3 }, itself( (3, ) ))
+        self.assertEquals({ 1 : 1, 2 : 2 }, itself( (1, 2) ))
+
+        # sets
+        self.assertEquals({ 3 : 3 }, itself(set([ 3 ])))
+        self.assertEquals({ 1 : 1, 2 : 2 }, itself(set([ 1, 2 ])))
 
 
     def test_wrapper(self):
@@ -129,20 +188,29 @@ class ThingOrThingTest(unittest.TestCase):
 
         class Foo:
             @thing_or_things
-            def foo(): pass
+            def foo(self): pass
 
         self.assertEquals('foo', Foo.foo.__name__)
 
 
     def test_return_type(self):
+        self.assertTrue(
+            dict, type(
+                thing_or_things(lambda things: {})([])
+            )
+        )
+
         with self.assertRaises(TypeError):
-            thing_or_things(lambda things: things)(1)
+            thing_or_things(lambda things: 1)(1)
 
         with self.assertRaises(TypeError):
             thing_or_things(lambda things: True)(1)
 
         with self.assertRaises(TypeError):
-            thing_or_things(lambda things: things)(1, 2)
+            thing_or_things(lambda things: [])([1, 2])
+
+        with self.assertRaises(TypeError):
+            thing_or_things(lambda things: set())(1)
 
 
     def test_missing_key(self):
@@ -153,15 +221,15 @@ class ThingOrThingTest(unittest.TestCase):
             thing_or_things(lambda things: { 2 : 2 })(1)
 
         with self.assertRaises(KeyError):
-            thing_or_things(lambda things: { 2 : 2 })(1, 2)
+            thing_or_things(lambda things: { 2 : 2 })([1, 2])
 
 
     def test_extra_key(self):
         with self.assertRaises(KeyError):
-            thing_or_things(lambda things: { 1 : 1 })()
+            thing_or_things(lambda things: { 1 : 1, 2 : 2 })(1)
 
         with self.assertRaises(KeyError):
-            thing_or_things(lambda things: { 1 : 1, 2 : 2 })(1)
+            thing_or_things(lambda things: { 1 : 1 })([])
 
 
 

@@ -44,27 +44,27 @@ itself(1)
 > 1
 itself([1, 2])
 > { 1 : 1, 2 : 2 }
-itself(1, 2, 3)
-> { 1 : 1, 2 : 2, 3 : 3 }
 
 
-# optional offset
-@thing_or_things(offset=1)
+# specified argument
+@thing_or_things('args')
 def prefix(prefix, args):
   return { x : "%s_%s" % (prefix, x) for x in args }
 
-prefix('abc', 1, 2)
+prefix('abc', [1, 2])
 > { 1 : 'abc_1', 2 : 'abc_2' }
 
 
-# keyword arguments get passed through
+# works with default args
 @thing_or_things
 def multiply(args, factor=1):
   return { x : x * factor for x in args }
 
+multiply(2)
+> 2
 multiply(2, factor=2)
 > 4
-multiply(1, 2, factor=3)
+multiply([1, 2], factor=3)
 > { 1 : 3, 2 : 6 }
 ```
 
