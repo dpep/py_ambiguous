@@ -1,3 +1,13 @@
+v0.3.0, 2018-04-16
+    a208c94 remove thing_or_things support for varargs for now because it was too ambiguous
+    62e7abf no longer needed
+    e2e1e87 counter example
+    42e4340 expand tests
+    d854b11 focus decorator module, rename is_class and is_self
+    f714968 cleanup
+    bd85679 rename
+    d71ca32 better testing
+    721b05b move selfish into its own package
 v0.2.1, 2018-03-23
     2488fcb wire things up
     0104741 Update README.md
