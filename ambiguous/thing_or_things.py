@@ -68,6 +68,9 @@ def thing_or_things(fn, arg_name=None):
     args[offset] = things
     res = fn(*args, **kwargs)
 
+    if res is None:
+      return
+
     # check return type
     if not isinstance(res, dict):
       raise TypeError('expected %s, found %s' % (dict, type(res)))

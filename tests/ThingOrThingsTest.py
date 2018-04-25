@@ -232,6 +232,14 @@ class ThingOrThingTest(unittest.TestCase):
             thing_or_things(lambda things: { 1 : 1 })([])
 
 
+    def test_returns_none(self):
+        @thing_or_things
+        def nope(things):
+            return None
+
+        self.assertIsNone(nope(1))
+        self.assertIsNone(nope([ 1, 2, 3 ]))
+
 
 if __name__ == '__main__':
     unittest.main()
