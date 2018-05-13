@@ -29,8 +29,21 @@ def ambiguous_function(func, *args, **kwargs):
   for op in ops:
     def exec_op(op, *args, **kwargs):
       def exec_op(self, *args, **kwargs):
-        # print op, args
-        return getattr(self(), op)(*args, **kwargs)
+        obj = self()
+        attr = getattr(obj, op, None)
+
+        if attr is None and op == '__getattribute__':
+          # support for old style classes that do not implement
+          # __getattribute__
+          attr = getattr(obj, args[0], None)
+
+        if attr is None:
+          raise AttributeError(
+            "type object '%s' has no attribute '%s'" % (
+              type(obj), op
+            )
+          )
+        return attr(*args, **kwargs)
       return exec_op
 
     # create unbound method for op
