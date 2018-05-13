@@ -3,10 +3,11 @@ __version__ = '0.3.1'
 
 
 __all__ = [
-  'ambiguous_method',
-  'ambiguous_instancemethod',
-  'ambiguous_classmethod',
-  'ambiguous_staticmethod',
+  'ambiguous',
+  'method',
+  'classmethod',
+  'staticmethod',
+
   'decorator',
   'thing_or_things',
 ]
@@ -14,19 +15,15 @@ __all__ = [
 
 import sys
 
-from .ambiguous import *
+from .ambiguous import ambiguous, ambiguous_method, ambiguous_classmethod
 from .decorator import decorator
-from .inspector import same_method
 from .thing_or_things import thing_or_things
 
 
-
-# define some aliases
+# define aliases
 method = ambiguous_method
-func = ambiguous_method
-instancemethod = ambiguous_instancemethod
 classmethod = ambiguous_classmethod
-staticmethod = ambiguous_staticmethod
+staticmethod = ambiguous
 
 
 class Ambiguous(object):
@@ -40,17 +37,10 @@ class Ambiguous(object):
       if x.startswith('__'):
         self.exports.add(x)
 
-    # find and export all ambiguous method aliases
-    ambiguous_methods = [
-      getattr(ambiguous, x, None) for x in ambiguous.__all__
-    ]
-    for k, v in globals().items():
-      if v in ambiguous_methods:
-        self.exports.add(k)
-
-
-  def __call__(self, *args):
-    return ambiguous_method(*args)
+  def __call__(self, func):
+    # decorate Class
+    # https://www.codementor.io/sheena/advanced-use-python-decorators-class-function-du107nxsv
+    return ambiguous(func)
 
 
   def __getattr__(self, method):

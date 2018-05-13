@@ -12,17 +12,8 @@ import ambiguous
 
 
 class Test(unittest.TestCase):
-    def test_obj_obj(self):
-        class Foo(object):
-            def foo(self):
-                class Bar(object):
-                    def bar(self):
-                        return 'bar'
-                return Bar()
-
-
     def test_basic(self):
-        @ambiguous.method
+        @ambiguous
         def foo():
           return True
 
@@ -31,7 +22,7 @@ class Test(unittest.TestCase):
 
 
     def test_str_function(self):
-        @ambiguous.method
+        @ambiguous
         def foo(val=''):
           return 'foo%s' % val
 
@@ -52,11 +43,11 @@ class Test(unittest.TestCase):
         self.assertTrue(isinstance(foo, str))
         self.assertTrue(issubclass(foo.__class__, str))
 
-        # TODO: test __doc__
+        self.assertEquals(str.__doc__, foo.__doc__)
 
 
     def test_list_function(self):
-        @ambiguous.method
+        @ambiguous
         def bar(val=None):
           return filter(None, [ 1, 2, 3 ] + [ val ])
 
@@ -82,7 +73,7 @@ class Test(unittest.TestCase):
     def test_dict_function(self):
         data = { 'a' : 1, 'b' : 2, 'c' : 3 }
 
-        @ambiguous.method
+        @ambiguous
         def baz(key=None, value=None):
           return { k : v for k, v in dict(data, **{ key : value }).items() if k }
 
@@ -106,17 +97,17 @@ class Test(unittest.TestCase):
 
     def test_obj_function(self):
         class Foo(object):
-            def __init__(self, name=None):
+            def __init__(self, name):
                 self.name = name
             def getName(self):
-                return self.name or ''
+                return self.name
             def __call__(self):
                 return '__call__'
             def __str__(self):
                 return '__str__'
 
-        @ambiguous.method
-        def foo(name=None):
+        @ambiguous
+        def foo(name=''):
             return Foo(name)
 
 
@@ -133,7 +124,7 @@ class Test(unittest.TestCase):
             def __init__(self, name=''):
                 self.name = name
 
-            @ambiguous.instancemethod
+            @ambiguous.method
             def foo(self, val=''):
                 return '%s.foo(%s)' % (self, val)
 

@@ -3,54 +3,72 @@ import types
 
 from functools import partial
 from ops import ops
+from types import *
 
+
+__all__ = [
+  'ambiguous',
+  'ambiguous_method',
+  'ambiguous_classmethod',
+]
 
 
 class AmbiguousType(object):
   pass
 
 
-def ambiguous_method(func, *args, **kwargs):
+def ambiguous_function(func, *args, **kwargs):
   wrapper = partial(func, *args, **kwargs)
 
-  class AmbiguousMethod(AmbiguousType):
+  class AmbiguousFunction(AmbiguousType):
       def __call__(self, *args, **kwargs):
         return wrapper(*args, **kwargs)
 
+  # monkey patch pass-through wrappers for all operators and special
+  # functions, eg. __eq__, __str__
   for op in ops:
     def exec_op(op, *args, **kwargs):
-      return getattr(wrapper(), op)(*args, **kwargs)
+      def exec_op(self, *args, **kwargs):
+        # print op, args
+        return getattr(self(), op)(*args, **kwargs)
+      return exec_op
 
-    setattr(AmbiguousMethod, op, partial(exec_op, op))
+    # create unbound method for op
+    op_fn = types.MethodType(exec_op(op), None, AmbiguousFunction)
+
+    # monkey patch
+    setattr(AmbiguousFunction, op, op_fn)
+
+  # call __new__ so as not to trigger pass-through __init__()
+  return AmbiguousFunction.__new__(AmbiguousFunction)
+
+
+def ambiguous_method(func):
+  class AmbiguousMethod(AmbiguousType):
+    def __get__(self, obj, objtype):
+      if obj:
+        # convert into an AmbiguousFunction with obj (aka self)
+        # as the first arg
+        return ambiguous_function(func, obj)
+
+      # called with class not instance, so return unbound method
+      return types.MethodType(func, None, objtype)
 
   return AmbiguousMethod()
 
 
-# instance method
-def ambiguous_instancemethod(func):
-  class AmbiguousInstanceMethod(AmbiguousType):
-    def __get__(self, obj, objtype):
-      if obj:
-        return ambiguous_method(func, obj)
-
-      # return unbound method
-      return types.MethodType(func, None, objtype)
-
-  return AmbiguousInstanceMethod()
-
-
-# class method
 def ambiguous_classmethod(func):
   class AmbiguousClassMethod(AmbiguousType):
     def __get__(self, obj, objtype):
-      return ambiguous_method(func, objtype)
+      # convert into an AmbiguousFunction with objtype (aka class)
+      # as the first arg
+      return ambiguous_function(func, objtype)
 
   return AmbiguousClassMethod()
 
 
-# static method
-ambiguous_staticmethod = ambiguous_method
+def ambiguous(func):
+  if isinstance(func, (BuiltinFunctionType, FunctionType)):
+    return ambiguous_function(func)
 
-
-# export ambiguous methods
-__all__ = [ x for x in dir() if x.startswith('ambiguous_') ]
+  raise NotImplementedError()
