@@ -167,6 +167,22 @@ class Test(unittest.TestCase):
         self.assertEquals('baz(abc)', Foo.baz('abc'))
 
 
+    def test_old_obj(self):
+        class Foo():
+            def __str__(self):
+                return '__str__'
+
+        @ambiguous
+        def foo():
+            return Foo()
+
+        # isinstance() does not work properly because type(Foo())
+        # has type instance, so use __class__
+        #   ie.  foo -> instance type -> class type
+        self.assertEquals(Foo, foo.__class__.__class__)
+        self.assertEquals('__str__', str(foo))
+
+
     def test_module(self):
         @ambiguous
         def foo():

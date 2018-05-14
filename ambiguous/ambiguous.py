@@ -36,6 +36,7 @@ def ambiguous_function(func, *args, **kwargs):
           # support for old style classes that do not implement
           # __getattribute__
           attr = getattr(obj, args[0], None)
+          args = tuple(args[1:])
 
         if attr is None:
           raise AttributeError(
@@ -43,6 +44,7 @@ def ambiguous_function(func, *args, **kwargs):
               type(obj), op
             )
           )
+
         return attr(*args, **kwargs)
       return exec_op
 
