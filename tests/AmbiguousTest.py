@@ -183,6 +183,29 @@ class Test(unittest.TestCase):
         self.assertEquals('__str__', str(foo))
 
 
+    def test_counts(self):
+        """
+        don't call functions more than intended
+        """
+
+        self.count = 0
+
+        @ambiguous
+        def inc():
+            self.count += 1
+            return self.count
+
+        self.assertEquals(0, self.count)
+        inc  # this is inadvertently a no-op
+        self.assertEquals(0, self.count)
+
+        inc()  # must call explicitly to trigger
+        self.assertEquals(1, self.count)
+
+        res = 0 + inc  # or do something with the value
+        self.assertEquals(2, self.count)
+
+
     def test_module(self):
         @ambiguous
         def foo():
