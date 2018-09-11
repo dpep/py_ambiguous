@@ -1,6 +1,6 @@
 ambiguous
 ======
-because magic makes life more easy
+because magic is fun
 
 
 ### Install
