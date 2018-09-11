@@ -1,3 +1,9 @@
+v0.3.2, 2018-09-10
+    efd22d4 return proper type
+    d445456 more test coverage
+    5945043 fix old obj and add test
+    4d2ab6b old style class support
+    2453c2a simplify ambiguous logic
 v0.3.1, 2018-04-24
     7f2468d enable thing_or_things fn to skip return values and just use input wrapper
 v0.3.0, 2018-04-16
@@ -50,4 +56,4 @@ v0.1.0, 2018-02-22
     234ec17 add object test
     df7f402 expand test coverage
 v0.0.1, 2018-02-22
-    
+
