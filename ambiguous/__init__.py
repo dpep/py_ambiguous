@@ -56,5 +56,10 @@ class Ambiguous(object):
     return list(self.exports)
 
 
+  @property
+  def __class__(self):
+    return self.module.__class__
+
+
 # overwrite module so that it's callable
 sys.modules[__name__] = Ambiguous(sys.modules[__name__])
