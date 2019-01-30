@@ -35,4 +35,4 @@ for obj in objs:
 
 if __name__ == '__main__':
     for op in sorted(ops):
-      print op
+      print(op)
