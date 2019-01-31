@@ -37,89 +37,89 @@ class DecoratorTest(unittest.TestCase):
 
         @power
         def squared(x): return x
-        self.assertEquals(1, squared(1))
-        self.assertEquals(4, squared(2))
+        self.assertEqual(1, squared(1))
+        self.assertEqual(4, squared(2))
 
         @power(3)
         def cubed(x): return x
-        self.assertEquals(1, cubed(1))
-        self.assertEquals(8, cubed(2))
-        self.assertEquals(27, cubed(3))
+        self.assertEqual(1, cubed(1))
+        self.assertEqual(8, cubed(2))
+        self.assertEqual(27, cubed(3))
 
 
     def test_strings(self):
         @suffix
         def abc(repeat=1): return 'abc' * repeat
 
-        self.assertEquals('abc_abc', abc())
-        self.assertEquals('abcabc_abc', abc(repeat=2))
+        self.assertEqual('abc_abc', abc())
+        self.assertEqual('abcabc_abc', abc(repeat=2))
 
         # call decorator without args, ie. `suffix()` vs `suffix`
         @suffix()
         def xyz(): return 'xyz'
-        self.assertEquals('xyz_abc', xyz())
+        self.assertEqual('xyz_abc', xyz())
 
 
     def test_kwargs(self):
         @suffix(str_='zzz')
         def xyz(repeat=1): return 'xyz' * repeat
 
-        self.assertEquals('xyz_zzz', xyz())
-        self.assertEquals('xyzxyz_zzz', xyz(2))
+        self.assertEqual('xyz_zzz', xyz())
+        self.assertEqual('xyzxyz_zzz', xyz(2))
 
 
     def test_args(self):
         @suffix('123')
         def qqq(): return 'qqq'
 
-        self.assertEquals('qqq_123', qqq())
+        self.assertEqual('qqq_123', qqq())
 
 
     def test_many_args(self):
         # basic decorator
         @prefix
         def pre(): return 'pre'
-        self.assertEquals('abc_pre', pre())
+        self.assertEqual('abc_pre', pre())
 
         # with a positional arg
         @prefix('123')
         def foo(): return 'foo'
-        self.assertEquals('123_foo', foo())
+        self.assertEqual('123_foo', foo())
 
         # multiple args
         @prefix('456', 2)
         def bar(): return 'bar'
-        self.assertEquals('456_barbar', bar())
+        self.assertEqual('456_barbar', bar())
 
         # args and kwargs
         @prefix('789', repeat=3)
         def baz(): return 'baz'
-        self.assertEquals('789_bazbazbaz', baz())
+        self.assertEqual('789_bazbazbaz', baz())
 
 
     def test_lambda(self):
         abc = lambda: 'abc'
 
-        self.assertEquals('abc', abc())
+        self.assertEqual('abc', abc())
 
         wrapped = suffix(abc)
-        self.assertEquals('abc_abc', wrapped())
+        self.assertEqual('abc_abc', wrapped())
 
-        self.assertEquals(
+        self.assertEqual(
             'abc_abc',
             prefix(abc)(),
         )
-        self.assertEquals(
+        self.assertEqual(
             '123_abc',
             prefix(abc, '123')(),
         )
-        self.assertEquals(
+        self.assertEqual(
             '123_abcabc',
             prefix(abc, pre='123', repeat=2)(),
         )
 
         # out of order
-        self.assertEquals(
+        self.assertEqual(
             '123_abcabc',
             prefix(abc, repeat=2, pre='123')(),
         )
@@ -128,49 +128,49 @@ class DecoratorTest(unittest.TestCase):
     def test_sequential_args(self):
         abc = lambda: 'abc'
 
-        self.assertEquals(
+        self.assertEqual(
             '123_abc',
             prefix('123')(abc)(),
         )
-        self.assertEquals(
+        self.assertEqual(
             '123_abcabc',
             prefix('123')(2)(abc)(),
         )
-        self.assertEquals(
+        self.assertEqual(
             '123_abcabc',
             prefix(pre='123')(repeat=2)(abc)(),
         )
 
         # out of order
-        self.assertEquals(
+        self.assertEqual(
             '123_abcabc',
             prefix(repeat=2)(pre='123')(abc)(),
         )
 
-        self.assertEquals(
+        self.assertEqual(
             '123_abcabc',
             prefix('123')(abc, repeat=2)(),
         )
 
-        self.assertEquals(
+        self.assertEqual(
             '123_abcabc',
             prefix(repeat=2)(abc, pre='123')(),
         )
 
         # passing kwarg, then args, then fn is ok
-        self.assertEquals(
+        self.assertEqual(
             '123_abcabc',
             prefix(repeat=2)('123')(abc)(),
         )
 
         # passing kwargs and then fn + args is ok
-        self.assertEquals(
+        self.assertEqual(
             '123_abcabc',
             prefix(repeat=2)(abc, '123')(),
         )
 
         # kwargs update
-        self.assertEquals(
+        self.assertEqual(
             '456_abcabc',
             prefix(pre='123', repeat=2)(abc, pre='456')(),
         )
@@ -181,23 +181,23 @@ class DecoratorTest(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             # arg order is ambiguous
-            self.assertEquals(
+            self.assertEqual(
                 '123_abcabc',
                 prefix('123')(abc, 2)(),
             )
 
 
     def test_wraps(self):
-        self.assertEquals('suffix', suffix.__name__)
+        self.assertEqual('suffix', suffix.__name__)
 
         @decorator
         def foo(): pass
-        self.assertEquals('foo', foo.__name__)
+        self.assertEqual('foo', foo.__name__)
 
         # test partials
-        self.assertEquals('foo', foo().__name__)
-        self.assertEquals('foo', foo(True).__name__)
-        self.assertEquals('foo', foo(arg=123).__name__)
+        self.assertEqual('foo', foo().__name__)
+        self.assertEqual('foo', foo(True).__name__)
+        self.assertEqual('foo', foo(arg=123).__name__)
 
 
         @decorator
@@ -206,12 +206,12 @@ class DecoratorTest(unittest.TestCase):
                 return fn(*args)
             return wrapper
 
-        self.assertEquals('bar', bar.__name__)
+        self.assertEqual('bar', bar.__name__)
 
 
         def baz(arg): pass
-        self.assertEquals('baz', baz.__name__)
-        self.assertEquals('baz', bar(baz).__name__)
+        self.assertEqual('baz', baz.__name__)
+        self.assertEqual('baz', bar(baz).__name__)
 
 
     def test_obj(self):
@@ -229,10 +229,10 @@ class DecoratorTest(unittest.TestCase):
             def val(self, val): return val
 
 
-        self.assertEquals(1, Foo().itself(1))
-        self.assertEquals(2, double(Foo().itself)(1))
+        self.assertEqual(1, Foo().itself(1))
+        self.assertEqual(2, double(Foo().itself)(1))
 
-        self.assertEquals(2, Foo().val(1))
+        self.assertEqual(2, Foo().val(1))
 
 
     def test_obj_wrapper(self):
@@ -244,9 +244,9 @@ class DecoratorTest(unittest.TestCase):
             def one(self): return 1
 
         self.assertTrue(inspect.isclass(Foo))
-        self.assertEquals('Foo', Foo.__name__)
-        self.assertEquals('one', Foo.one.__name__)
-        self.assertEquals(1, Foo().one())
+        self.assertEqual('Foo', Foo.__name__)
+        self.assertEqual('one', Foo.one.__name__)
+        self.assertEqual(1, Foo().one())
 
 
         @decorator
@@ -259,10 +259,10 @@ class DecoratorTest(unittest.TestCase):
         class Bar(dict):
             def two(self): return 2
 
-        self.assertEquals('Upgrade', Bar.__name__)
+        self.assertEqual('Upgrade', Bar.__name__)
         self.assertTrue(issubclass(Bar, dict))
-        self.assertEquals(2, Bar().two())
-        self.assertEquals(3, Bar().three())
+        self.assertEqual(2, Bar().two())
+        self.assertEqual(3, Bar().three())
 
 
     def test_missing_arg(self):
@@ -282,12 +282,12 @@ class DecoratorTest(unittest.TestCase):
         @double_that
         def double(x): return x
 
-        self.assertEquals(2, double(1))
-        self.assertEquals(4, double(2))
+        self.assertEqual(2, double(1))
+        self.assertEqual(4, double(2))
 
         quadruple = double_that(double)
-        self.assertEquals(4, quadruple(1))
-        self.assertEquals(8, quadruple(2))
+        self.assertEqual(4, quadruple(1))
+        self.assertEqual(8, quadruple(2))
 
 
 

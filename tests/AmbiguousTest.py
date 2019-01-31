@@ -26,24 +26,24 @@ class Test(unittest.TestCase):
         def foo(val=''):
           return 'foo%s' % val
 
-        self.assertEquals('foo', foo)
-        self.assertEquals('foo', foo())
+        self.assertEqual('foo', foo)
+        self.assertEqual('foo', foo())
 
-        self.assertEquals('fooboo', foo('boo'))
-        self.assertEquals('fooboo', foo + 'boo')
+        self.assertEqual('fooboo', foo('boo'))
+        self.assertEqual('fooboo', foo + 'boo')
 
-        self.assertEquals(3, len(foo))
-        self.assertEquals(3, len(foo()))
+        self.assertEqual(3, len(foo))
+        self.assertEqual(3, len(foo()))
 
-        self.assertEquals('FOO', foo.upper())
+        self.assertEqual('FOO', foo.upper())
 
-        self.assertEquals('f', foo[0])
-        self.assertEquals('oo', foo[1:])
+        self.assertEqual('f', foo[0])
+        self.assertEqual('oo', foo[1:])
 
         self.assertTrue(isinstance(foo, str))
         self.assertTrue(issubclass(foo.__class__, str))
 
-        self.assertEquals(str.__doc__, foo.__doc__)
+        self.assertEqual(str.__doc__, foo.__doc__)
 
 
     def test_list_function(self):
@@ -51,17 +51,17 @@ class Test(unittest.TestCase):
         def bar(val=None):
           return filter(None, [ 1, 2, 3 ] + [ val ])
 
-        self.assertEquals([ 1, 2, 3 ], bar)
-        self.assertEquals([ 1, 2, 3 ], bar())
+        self.assertEqual([ 1, 2, 3 ], bar)
+        self.assertEqual([ 1, 2, 3 ], bar())
 
-        self.assertEquals([ 1, 2, 3, 4 ], bar(4))
-        self.assertEquals([ 1, 2, 3, 4 ], bar + [ 4 ])
+        self.assertEqual([ 1, 2, 3, 4 ], bar(4))
+        self.assertEqual([ 1, 2, 3, 4 ], bar + [ 4 ])
 
-        self.assertEquals(1, bar[0])
-        self.assertEquals([ 2, 3 ], bar[1:])
-        self.assertEquals([ 2, 3, 4 ], bar(4)[1:])
+        self.assertEqual(1, bar[0])
+        self.assertEqual([ 2, 3 ], bar[1:])
+        self.assertEqual([ 2, 3, 4 ], bar(4)[1:])
 
-        self.assertEquals(3, len(bar))
+        self.assertEqual(3, len(bar))
 
         self.assertTrue(isinstance(bar, list))
 
@@ -77,16 +77,16 @@ class Test(unittest.TestCase):
         def baz(key=None, value=None):
           return { k : v for k, v in dict(data, **{ key : value }).items() if k }
 
-        self.assertEquals(data, baz)
-        self.assertEquals(data, baz())
+        self.assertEqual(data, baz)
+        self.assertEqual(data, baz())
 
-        self.assertEquals(dict(data, z=9), baz('z', 9))
+        self.assertEqual(dict(data, z=9), baz('z', 9))
 
-        self.assertEquals(1, baz['a'])
-        self.assertEquals(('a', 1), baz.items()[0])
-        self.assertEquals(9, baz('z', 9)['z'])
+        self.assertEqual(1, baz['a'])
+        self.assertEqual(('a', 1), baz.items()[0])
+        self.assertEqual(9, baz('z', 9)['z'])
 
-        self.assertEquals(3, len(baz))
+        self.assertEqual(3, len(baz))
 
         self.assertTrue(isinstance(baz, dict))
 
@@ -113,10 +113,10 @@ class Test(unittest.TestCase):
 
         self.assertTrue(isinstance(foo, Foo))
         self.assertTrue(isinstance(foo(), Foo))
-        self.assertEquals('', foo.getName())
-        self.assertEquals('bob', foo('bob').getName())
-        self.assertEquals('__str__', str(foo))
-        self.assertEquals('__call__', foo()())
+        self.assertEqual('', foo.getName())
+        self.assertEqual('bob', foo('bob').getName())
+        self.assertEqual('__str__', str(foo))
+        self.assertEqual('__call__', foo()())
 
 
     def test_object(self):
@@ -147,24 +147,24 @@ class Test(unittest.TestCase):
             # fails since method is unbound
             Foo.foo()
 
-        self.assertEquals('Foo().foo()', Foo().foo)
-        self.assertEquals('Foo().foo()', Foo().foo())
-        self.assertEquals('Foo(abc).foo()', Foo('abc').foo)
-        self.assertEquals('Foo(abc).foo(xyz)', Foo('abc').foo('xyz'))
+        self.assertEqual('Foo().foo()', Foo().foo)
+        self.assertEqual('Foo().foo()', Foo().foo())
+        self.assertEqual('Foo(abc).foo()', Foo('abc').foo)
+        self.assertEqual('Foo(abc).foo(xyz)', Foo('abc').foo('xyz'))
 
 
         # class methods
-        self.assertEquals('%s.bar()' % Foo, Foo.bar)
-        self.assertEquals('%s.bar()' % Foo, Foo.bar())
-        self.assertEquals('%s.bar()' % Foo, Foo().bar())
-        self.assertEquals('%s.bar(abc)' % Foo, Foo.bar('abc'))
+        self.assertEqual('%s.bar()' % Foo, Foo.bar)
+        self.assertEqual('%s.bar()' % Foo, Foo.bar())
+        self.assertEqual('%s.bar()' % Foo, Foo().bar())
+        self.assertEqual('%s.bar(abc)' % Foo, Foo.bar('abc'))
 
 
         # static methods
-        self.assertEquals('baz()', Foo.baz)
-        self.assertEquals('baz()', Foo.baz())
-        self.assertEquals('baz()', Foo().baz())
-        self.assertEquals('baz(abc)', Foo.baz('abc'))
+        self.assertEqual('baz()', Foo.baz)
+        self.assertEqual('baz()', Foo.baz())
+        self.assertEqual('baz()', Foo().baz())
+        self.assertEqual('baz(abc)', Foo.baz('abc'))
 
 
     def test_old_obj(self):
@@ -179,8 +179,8 @@ class Test(unittest.TestCase):
         # isinstance() does not work properly because type(Foo())
         # has type instance, so use __class__
         #   ie.  foo -> instance type -> class type
-        self.assertEquals(Foo, foo.__class__.__class__)
-        self.assertEquals('__str__', str(foo))
+        self.assertEqual(Foo, foo.__class__.__class__)
+        self.assertEqual('__str__', str(foo))
 
 
     def test_counts(self):
@@ -195,15 +195,15 @@ class Test(unittest.TestCase):
             self.count += 1
             return self.count
 
-        self.assertEquals(0, self.count)
+        self.assertEqual(0, self.count)
         inc  # this is inadvertently a no-op
-        self.assertEquals(0, self.count)
+        self.assertEqual(0, self.count)
 
         inc()  # must call explicitly to trigger
-        self.assertEquals(1, self.count)
+        self.assertEqual(1, self.count)
 
         res = 0 + inc  # or do something with the value
-        self.assertEquals(2, self.count)
+        self.assertEqual(2, self.count)
 
 
     def test_module(self):
@@ -211,8 +211,8 @@ class Test(unittest.TestCase):
         def foo():
           return 'foo'
 
-        self.assertEquals('foo', foo)
-        self.assertEquals('foo', foo())
+        self.assertEqual('foo', foo)
+        self.assertEqual('foo', foo())
 
 
 
