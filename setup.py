@@ -54,10 +54,8 @@ if __name__ == "__main__":
         long_description=open('README.md').read(),
         platforms="any",
 
-        packages=[
-            PACKAGE,
-        ],
-        test_suite = 'setup.discover_tests',
+        packages=[ PACKAGE ],
+        test_suite='setup.discover_tests',
 
         # https://pypi.python.org/pypi?%3Aaction=list_classifiers
         classifiers=[
