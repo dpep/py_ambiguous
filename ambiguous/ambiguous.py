@@ -2,8 +2,9 @@ import sys
 import types
 
 from functools import partial
-from ops import ops
 from types import *
+
+from .ops import ops
 
 
 __all__ = [
