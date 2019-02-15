@@ -20,6 +20,13 @@ class Test(unittest.TestCase):
         self.assertTrue(foo())
         self.assertTrue(foo)
 
+        @ambiguous
+        def bar():
+          return 'bar'
+
+        self.assertEqual('bar', bar())
+        self.assertEqual('bar', bar)
+
 
     def test_str_function(self):
         @ambiguous
@@ -49,7 +56,7 @@ class Test(unittest.TestCase):
     def test_list_function(self):
         @ambiguous
         def bar(val=None):
-          return filter(None, [ 1, 2, 3 ] + [ val ])
+          return list(filter(None, [ 1, 2, 3 ] + [ val ]))
 
         self.assertEqual([ 1, 2, 3 ], bar)
         self.assertEqual([ 1, 2, 3 ], bar())
@@ -69,54 +76,41 @@ class Test(unittest.TestCase):
         bar[0] = 123
         del bar[0]
 
+        # although the update doesn't stick
+        self.assertEqual(1, bar[0])
+
+        # unless you save the returned object
+        res = bar()
+        res[0] = 123
+        self.assertEqual(123, res[0])
+
 
     def test_dict_function(self):
-        data = { 'a' : 1, 'b' : 2, 'c' : 3 }
+        data = { 'a' : 1, 'b' : 2 }
 
         @ambiguous
-        def baz(key=None, value=None):
-          return { k : v for k, v in dict(data, **{ key : value }).items() if k }
+        def baz(factor=1):
+          return { k : v * factor for k, v in data.items() }
 
         self.assertEqual(data, baz)
         self.assertEqual(data, baz())
 
-        self.assertEqual(dict(data, z=9), baz('z', 9))
+        self.assertEqual({ 'a' : 2, 'b' : 4 }, baz(2))
 
         self.assertEqual(1, baz['a'])
-        self.assertEqual(('a', 1), baz.items()[0])
-        self.assertEqual(9, baz('z', 9)['z'])
+        self.assertTrue(('a', 1) in baz.items())
+        self.assertEqual(18, baz(9)['b'])
 
-        self.assertEqual(3, len(baz))
+        self.assertEqual(2, len(baz))
 
         self.assertTrue(isinstance(baz, dict))
 
-        # no exceptions here
+        # no exceptions here, and no persisted changes
         baz['a'] = 123
+        self.assertEqual(1, baz['a'])
+
         del baz['a']
-
-
-    def test_obj_function(self):
-        class Foo(object):
-            def __init__(self, name):
-                self.name = name
-            def getName(self):
-                return self.name
-            def __call__(self):
-                return '__call__'
-            def __str__(self):
-                return '__str__'
-
-        @ambiguous
-        def foo(name=''):
-            return Foo(name)
-
-
-        self.assertTrue(isinstance(foo, Foo))
-        self.assertTrue(isinstance(foo(), Foo))
-        self.assertEqual('', foo.getName())
-        self.assertEqual('bob', foo('bob').getName())
-        self.assertEqual('__str__', str(foo))
-        self.assertEqual('__call__', foo()())
+        self.assertEqual(1, baz['a'])
 
 
     def test_object(self):
@@ -141,7 +135,11 @@ class Test(unittest.TestCase):
 
 
         # instance methods
-        self.assertTrue(isinstance(Foo.foo, types.UnboundMethodType))
+        if sys.version_info[0] == 2:
+            self.assertTrue(isinstance(Foo.foo, types.UnboundMethodType))
+        else:
+            # no unbounded type anymore in Python3
+            self.assertTrue(isinstance(Foo.foo, types.FunctionType))
 
         with self.assertRaises(TypeError):
             # fails since method is unbound
@@ -152,35 +150,44 @@ class Test(unittest.TestCase):
         self.assertEqual('Foo(abc).foo()', Foo('abc').foo)
         self.assertEqual('Foo(abc).foo(xyz)', Foo('abc').foo('xyz'))
 
-
         # class methods
         self.assertEqual('%s.bar()' % Foo, Foo.bar)
         self.assertEqual('%s.bar()' % Foo, Foo.bar())
+        self.assertEqual('%s.bar()' % Foo, Foo().bar)
         self.assertEqual('%s.bar()' % Foo, Foo().bar())
         self.assertEqual('%s.bar(abc)' % Foo, Foo.bar('abc'))
-
+        self.assertEqual('%s.bar(abc)' % Foo, Foo().bar('abc'))
 
         # static methods
         self.assertEqual('baz()', Foo.baz)
         self.assertEqual('baz()', Foo.baz())
         self.assertEqual('baz()', Foo().baz())
         self.assertEqual('baz(abc)', Foo.baz('abc'))
+        self.assertEqual('baz(abc)', Foo().baz('abc'))
 
 
-    def test_old_obj(self):
-        class Foo():
+    def test_obj_from_function(self):
+        class Foo(object):
+            def __init__(self, name):
+                self.name = name
+            def getName(self):
+                return self.name
+            def __call__(self):
+                return '__call__'
             def __str__(self):
                 return '__str__'
 
         @ambiguous
-        def foo():
-            return Foo()
+        def foo(name=''):
+            return Foo(name)
 
-        # isinstance() does not work properly because type(Foo())
-        # has type instance, so use __class__
-        #   ie.  foo -> instance type -> class type
-        self.assertEqual(Foo, foo.__class__.__class__)
+
+        self.assertTrue(isinstance(foo, Foo))
+        self.assertTrue(isinstance(foo(), Foo))
+        self.assertEqual('', foo.getName())
+        self.assertEqual('bob', foo('bob').getName())
         self.assertEqual('__str__', str(foo))
+        self.assertEqual('__call__', foo()())
 
 
     def test_counts(self):
@@ -203,16 +210,30 @@ class Test(unittest.TestCase):
         self.assertEqual(1, self.count)
 
         res = 0 + inc  # or do something with the value
+        self.assertEqual(2, res)
         self.assertEqual(2, self.count)
 
 
-    def test_module(self):
+    def test_old_obj_from_func(self):
+        class Foo():
+            def __str__(self):
+                return '__str__'
+
         @ambiguous
         def foo():
-          return 'foo'
+            return Foo()
 
-        self.assertEqual('foo', foo)
-        self.assertEqual('foo', foo())
+        self.assertEqual('__str__', str(foo))
+
+        # isinstance() does not work properly because type(Foo())
+        # has type 'instance', so use __class__
+        if sys.version_info[0] == 2:
+            #   ie.  foo -> instance type -> class type
+            self.assertEqual(Foo, foo.__class__.__class__)
+        else:
+            # Python3 fixed this quirk, Class.__class__ works as expected
+            self.assertEqual(Foo, foo.__class__)
+
 
 
 

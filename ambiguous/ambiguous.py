@@ -28,16 +28,24 @@ def ambiguous_function(func, *args, **kwargs):
   # monkey patch pass-through wrappers for all operators and special
   # functions, eg. __eq__, __str__
   for op in ops:
-    def exec_op(op, *args, **kwargs):
+    def exec_op(op):
       def exec_op(self, *args, **kwargs):
+        # call ambiguated function to retrieve result upon which user
+        # is intending to operate on
         obj = self()
+
+        # retrieve function pointer for user-intended call
         attr = getattr(obj, op, None)
 
-        if attr is None and op == '__getattribute__':
-          # support for old style classes that do not implement
-          # __getattribute__
-          attr = getattr(obj, args[0], None)
-          args = tuple(args[1:])
+        if attr is None:
+            # backwards compatibility for objects not inheritting from 'object'
+
+            if op == '__getattribute__':
+              attr = getattr(obj, args[0], None)
+              args = tuple(args[1:])
+            elif op == '__repr__':
+              # alias __repr__ => __str__
+              attr = getattr(obj, '__str__', None)
 
         if attr is None:
           raise AttributeError(
@@ -46,14 +54,11 @@ def ambiguous_function(func, *args, **kwargs):
             )
           )
 
+        # make user-intended function call
         return attr(*args, **kwargs)
       return exec_op
 
-    # create unbound method for op
-    op_fn = types.MethodType(exec_op(op), None, AmbiguousFunction)
-
-    # monkey patch
-    setattr(AmbiguousFunction, op, op_fn)
+    setattr(AmbiguousFunction, op, exec_op(op))
 
   # call __new__ so as not to trigger pass-through __init__()
   return AmbiguousFunction.__new__(AmbiguousFunction)
@@ -67,8 +72,12 @@ def ambiguous_method(func):
         # as the first arg
         return ambiguous_function(func, obj)
 
-      # called with class not instance, so return unbound method
-      return types.MethodType(func, None, objtype)
+      if sys.version_info[0] == 2:
+        # called with class not instance, so return unbound method
+        return types.MethodType(func, None, objtype)
+      else:
+        # unbounded functions are just functions in Python3
+        return func
 
   return AmbiguousMethod()
 
