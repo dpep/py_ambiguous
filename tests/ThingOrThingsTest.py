@@ -24,94 +24,15 @@ class ThingOrThingTest(unittest.TestCase):
         self.assertEqual({ 1 : 1, 2 : 2 }, itself([ 1, 2 ]))
 
 
-    def test_arg_name(self):
-        @thing_or_things('args')
-        def prefix(prefix, args):
-          return { x : "%s%s" % (prefix, x) for x in args }
-
-        self.assertEqual('+1', prefix('+', 1))
-        self.assertEqual({ 1 : '+1' }, prefix('+', [ 1 ]))
-        self.assertEqual({ 1 : '+1', 2: '+2' }, prefix('+', [ 1, 2 ]))
-
-        with self.assertRaises(TypeError):
-            # missing args param
-            prefix('+1')
-
-        with self.assertRaises(TypeError):
-            # unclear which arg is for things
-            @thing_or_things
-            def foo(x, y): pass
-
-
-    def test_default_args(self):
+    def test_default_arg(self):
         @thing_or_things
         def multiply(args, factor=1):
           return { x : x * factor for x in args }
 
         self.assertEqual(1, multiply(1))
         self.assertEqual(2, multiply(1, factor=2))
-        self.assertEqual({ 1 : 2 }, multiply([ 1 ], factor=2))
+        self.assertEqual({ 1 : 1 }, multiply([ 1 ]))
         self.assertEqual({ 1 : 2, 2 : 4 }, multiply([ 1, 2 ], factor=2))
-
-
-    def test_bad_default_args(self):
-        with self.assertRaises(ValueError):
-            # unclear which arg is for things
-            @thing_or_things
-            def foo(a=1, b=2, c=3): pass
-
-        with self.assertRaises(ValueError):
-            @thing_or_things
-            def foo(a, b, c=3): pass
-
-        @thing_or_things('things')
-        def foo(a, things, c=3):
-            return { thing : (a, thing, c) for thing in things }
-
-        with self.assertRaises(TypeError):
-            # too few
-            foo(1)
-
-        with self.assertRaises(TypeError):
-            # too many
-            foo(1, 2, 3, 4)
-
-
-    def test_varargs(self):
-        with self.assertRaises(NotImplementedError):
-            @thing_or_things
-            def foo(*args): pass
-
-        with self.assertRaises(NotImplementedError):
-            @thing_or_things
-            def foo(x, *args): pass
-
-        @thing_or_things('ids')
-        def foo(ids, *args):
-            return { x : [x] + list(args) for x in ids }
-        self.assertEqual([1, 'a', 'b'], foo(1, 'a', 'b'))
-
-
-    def test_kwargs(self):
-        @thing_or_things
-        def keywords(things, **kwargs):
-            return { x : kwargs for x in things }
-
-        self.assertEqual({}, keywords(1))
-        self.assertEqual({'a' : 5}, keywords(1, a=5))
-
-
-    def test_no_args(self):
-        with self.assertRaises(TypeError):
-            @thing_or_things
-            def foo(): pass
-
-
-    def test_empty(self):
-        self.assertEqual({}, itself([]))
-
-        with self.assertRaises(TypeError):
-            itself()
 
 
     def test_many_args(self):
@@ -126,6 +47,105 @@ class ThingOrThingTest(unittest.TestCase):
             { 1 : 9, 2 : 19 },
             math(10, [1, 2], 1)
         )
+
+
+    def test_kwargs(self):
+        @thing_or_things
+        def keywords(things, **kwargs):
+            return { x : kwargs for x in things }
+
+        self.assertEqual({}, keywords(1))
+        self.assertEqual({'a' : 5}, keywords(1, a=5))
+
+
+    def test_varargs(self):
+        @thing_or_things('ids')
+        def foo(ids, *args):
+            return { x : [x] + list(args) for x in ids }
+
+        self.assertEqual([1, 'a', 'b'], foo(1, 'a', 'b'))
+
+
+    def test_empty(self):
+        # this is fine
+        self.assertEqual({}, itself([]))
+
+        # but this doesn't make sense
+        with self.assertRaises(TypeError):
+            itself()
+
+
+    def test_returns_none(self):
+        # allowed to return None instead of list
+
+        @thing_or_things
+        def nope(things):
+            return None
+
+        self.assertIsNone(nope(1))
+        self.assertIsNone(nope([ 1, 2, 3 ]))
+
+
+    def test_arg_name(self):
+        @thing_or_things('args')
+        def prefix(prefix, args):
+          return { x : "%s%s" % (prefix, x) for x in args }
+
+        self.assertEqual('+1', prefix('+', 1))
+        self.assertEqual({ 1 : '+1' }, prefix('+', [ 1 ]))
+        self.assertEqual({ 1 : '+1', 2: '+2' }, prefix('+', [ 1, 2 ]))
+
+
+    def test_arg_name_error(self):
+        # use case makes no sense
+        with self.assertRaises(TypeError):
+            @thing_or_things
+            def foo(): pass
+
+        # ambiguous which arg is for things
+
+        with self.assertRaises(TypeError):
+            @thing_or_things
+            def foo(x, y): pass
+
+        with self.assertRaises(ValueError):
+            @thing_or_things
+            def foo(a, b, c=3): pass
+
+        with self.assertRaises(ValueError):
+            @thing_or_things
+            def foo(a=1, b=2, c=3): pass
+
+        # varargs are generally avoided
+
+        with self.assertRaises(NotImplementedError):
+            @thing_or_things
+            def foo(*args): pass
+
+        with self.assertRaises(NotImplementedError):
+            @thing_or_things
+            def foo(x, *args): pass
+
+        with self.assertRaises(NotImplementedError):
+            @thing_or_things('args')
+            def foo(*args): pass
+
+
+    def test_arg_error(self):
+        @thing_or_things('things')
+        def foo(a, things, c=3):
+            return { thing : (a, thing, c) for thing in things }
+
+        # too few args
+        with self.assertRaises(TypeError):
+            foo()
+
+        with self.assertRaises(TypeError):
+            foo(1)
+
+        # too many args
+        with self.assertRaises(TypeError):
+            foo(1, 2, 3, 4)
 
 
     def test_obj_context(self):
@@ -184,6 +204,7 @@ class ThingOrThingTest(unittest.TestCase):
 
 
     def test_wrapper(self):
+        # ensure function name was preserved
         self.assertEqual('itself', itself.__name__)
 
         class Foo:
@@ -231,14 +252,6 @@ class ThingOrThingTest(unittest.TestCase):
         with self.assertRaises(KeyError):
             thing_or_things(lambda things: { 1 : 1 })([])
 
-
-    def test_returns_none(self):
-        @thing_or_things
-        def nope(things):
-            return None
-
-        self.assertIsNone(nope(1))
-        self.assertIsNone(nope([ 1, 2, 3 ]))
 
 
 if __name__ == '__main__':
