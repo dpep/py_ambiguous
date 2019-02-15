@@ -68,7 +68,7 @@ multiply([1, 2], factor=3)
 > { 1 : 3, 2 : 6 }
 ```
 
-#### what, parentheses optional?!
+#### what, parentheses optional?!   (warning: still highly experimental)
 ```
 import ambiguous
 
@@ -83,7 +83,3 @@ print foo()
 foo + 'abc'
 > 'fooabc'
 ```
-
-###### Caveats
-- warning: still highly experimental
-- Does not work with functions returning objects not subclassing `object`.
