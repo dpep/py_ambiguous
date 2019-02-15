@@ -1,4 +1,5 @@
 import inspect
+import sys
 
 from collections import Iterable
 from functools import wraps
@@ -11,11 +12,15 @@ __all__ = [ 'thing_or_things' ]
 
 @decorator
 def thing_or_things(fn, arg_name=None):
-  spec = inspect.getargspec(fn)
+  if sys.version_info[0] == 2:
+    # backwards compatibility for Python2
+    spec = inspect.getargspec(fn)
+  else:
+    spec = inspect.getfullargspec(fn)
 
   if arg_name:
     if spec.varargs == arg_name:
-      raise NotImplementedError('a varargs should not be used')
+      raise NotImplementedError('can not use varargs')
 
     if arg_name not in spec.args:
       raise ValueError(
@@ -53,6 +58,8 @@ def thing_or_things(fn, arg_name=None):
     if len(args) < len(spec.args) - len(spec.defaults or []):
       # not enough args...let function raise TypeError
       fn(*args, **kwargs)
+
+      # should never get here, but just in case...
       assert False, '%s() is missing arguments' % fn.__name__
 
     if isinstance(args[offset], (list, set, tuple)):
