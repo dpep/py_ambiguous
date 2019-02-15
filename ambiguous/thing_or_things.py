@@ -15,11 +15,11 @@ def thing_or_things(fn, arg_name=None):
 
   if arg_name:
     if spec.varargs == arg_name:
-      raise NotImplementedError('argument may not be a varargs')
+      raise NotImplementedError('a varargs should not be used')
 
     if arg_name not in spec.args:
       raise ValueError(
-        'specified arg name not in function signature: %s' % arg_name
+        'arg_name not in function signature: %s' % arg_name
       )
   else:
     # no args given, determine defaults
