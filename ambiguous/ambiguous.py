@@ -23,8 +23,8 @@ def ambiguous_function(func, *args, **kwargs):
   wrapper = partial(func, *args, **kwargs)
 
   class AmbiguousFunction(AmbiguousType):
-      def __call__(self, *args, **kwargs):
-        return wrapper(*args, **kwargs)
+    def __call__(self, *args, **kwargs):
+      return wrapper(*args, **kwargs)
 
   # monkey patch pass-through wrappers for all operators and special
   # functions, eg. __eq__, __str__
@@ -39,14 +39,14 @@ def ambiguous_function(func, *args, **kwargs):
         attr = getattr(obj, op, None)
 
         if attr is None:
-            # backwards compatibility for objects not inheritting from 'object'
+          # backwards compatibility for objects not inheritting from 'object'
 
-            if op == '__getattribute__':
-              attr = getattr(obj, args[0], None)
-              args = tuple(args[1:])
-            elif op == '__repr__':
-              # alias __repr__ => __str__
-              attr = getattr(obj, '__str__', None)
+          if op == '__getattribute__':
+            attr = getattr(obj, args[0], None)
+            args = tuple(args[1:])
+          elif op == '__repr__':
+            # alias __repr__ => __str__
+            attr = getattr(obj, '__str__', None)
 
         if attr is None:
           raise AttributeError(
