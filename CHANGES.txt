@@ -1,3 +1,13 @@
+v0.4.0, 2019-02-15
+    d503900 Update README.md
+    0835bc9 python3 compatibility
+    fe02027 python3 compatibility
+    2b71a4b organize
+    e1174a3 gc incomplete work
+    2b5e3c0 s/assertEquals/assertEqual/
+    f2befd5 move to relative import for python3
+    5a2e273 python 3 upgrade
+    2895dd4 Update README.md
 v0.3.2, 2018-09-10
     efd22d4 return proper type
     d445456 more test coverage
