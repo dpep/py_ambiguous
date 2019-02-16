@@ -2,7 +2,6 @@
 
 import os
 import sys
-import types
 import unittest
 
 sys.path = [ os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) ] + sys.path
@@ -113,57 +112,26 @@ class Test(unittest.TestCase):
         self.assertEqual(1, baz['a'])
 
 
-    def test_object(self):
-        class Foo(object):
-            def __init__(self, name=''):
-                self.name = name
+    def test_counts(self):
+        # don't call functions more than intended
 
-            @ambiguous.method
-            def foo(self, val=''):
-                return '%s.foo(%s)' % (self, val)
+        self.count = 0
 
-            @ambiguous.classmethod
-            def bar(cls, val=''):
-                return '%s.bar(%s)' % (cls, val)
+        @ambiguous
+        def inc():
+            self.count += 1
+            return self.count
 
-            @ambiguous.staticmethod
-            def baz(val=''):
-                return 'baz(%s)' % val
+        self.assertEqual(0, self.count)
+        inc  # this is inadvertently a no-op
+        self.assertEqual(0, self.count)
 
-            def __str__(self):
-                return 'Foo(%s)' % self.name
+        inc()  # must call explicitly to trigger
+        self.assertEqual(1, self.count)
 
-
-        # instance methods
-        if sys.version_info[0] == 2:
-            self.assertTrue(isinstance(Foo.foo, types.UnboundMethodType))
-        else:
-            # no unbounded type anymore in Python3
-            self.assertTrue(isinstance(Foo.foo, types.FunctionType))
-
-        with self.assertRaises(TypeError):
-            # fails since method is unbound
-            Foo.foo()
-
-        self.assertEqual('Foo().foo()', Foo().foo)
-        self.assertEqual('Foo().foo()', Foo().foo())
-        self.assertEqual('Foo(abc).foo()', Foo('abc').foo)
-        self.assertEqual('Foo(abc).foo(xyz)', Foo('abc').foo('xyz'))
-
-        # class methods
-        self.assertEqual('%s.bar()' % Foo, Foo.bar)
-        self.assertEqual('%s.bar()' % Foo, Foo.bar())
-        self.assertEqual('%s.bar()' % Foo, Foo().bar)
-        self.assertEqual('%s.bar()' % Foo, Foo().bar())
-        self.assertEqual('%s.bar(abc)' % Foo, Foo.bar('abc'))
-        self.assertEqual('%s.bar(abc)' % Foo, Foo().bar('abc'))
-
-        # static methods
-        self.assertEqual('baz()', Foo.baz)
-        self.assertEqual('baz()', Foo.baz())
-        self.assertEqual('baz()', Foo().baz())
-        self.assertEqual('baz(abc)', Foo.baz('abc'))
-        self.assertEqual('baz(abc)', Foo().baz('abc'))
+        res = 0 + inc  # or do something with the value
+        self.assertEqual(2, res)
+        self.assertEqual(2, self.count)
 
 
     def test_obj_from_function(self):
@@ -190,30 +158,6 @@ class Test(unittest.TestCase):
         self.assertEqual('__call__', foo()())
 
 
-    def test_counts(self):
-        """
-        don't call functions more than intended
-        """
-
-        self.count = 0
-
-        @ambiguous
-        def inc():
-            self.count += 1
-            return self.count
-
-        self.assertEqual(0, self.count)
-        inc  # this is inadvertently a no-op
-        self.assertEqual(0, self.count)
-
-        inc()  # must call explicitly to trigger
-        self.assertEqual(1, self.count)
-
-        res = 0 + inc  # or do something with the value
-        self.assertEqual(2, res)
-        self.assertEqual(2, self.count)
-
-
     def test_old_obj_from_func(self):
         class Foo():
             def __str__(self):
@@ -231,7 +175,7 @@ class Test(unittest.TestCase):
             #   ie.  foo -> instance type -> class type
             self.assertEqual(Foo, foo.__class__.__class__)
         else:
-            # Python3 fixed this quirk, Class.__class__ works as expected
+            # Python3 fixed this quirk so Class.__class__ works as expected
             self.assertEqual(Foo, foo.__class__)
 
 

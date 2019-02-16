@@ -1,3 +1,4 @@
+import inspect
 import sys
 import types
 
@@ -92,8 +93,57 @@ def ambiguous_classmethod(func):
   return AmbiguousClassMethod()
 
 
-def ambiguous(func):
-  if isinstance(func, (BuiltinFunctionType, FunctionType)):
-    return ambiguous_function(func)
+def ambiguous_descriptor(desc):
+  class AmbiguousDescriptor(AmbiguousType):
+    def __get__(self, obj, objtype):
+      return ambiguous_function(desc.__get__(obj, objtype))
 
-  raise NotImplementedError()
+  return AmbiguousDescriptor()
+
+
+def ambiguous_class(cls):
+  class_dict = getattr(cls, '__dict__')
+
+  for name, func in inspect.getmembers(cls):
+    # skip anything that isn't a method or function, eg. class var
+    if not isinstance(func, (MethodType, FunctionType)):
+      continue
+
+    # skip all special methods because we're liable to get into trouble
+    if name.startswith('__'):
+      continue
+
+    # use function pointer from __dict__ to determine type
+    # because it contains classmethod / staticmethod info
+    func_type = type(class_dict.get(name, None))
+
+    # determine how to wrap the function
+    if classmethod == func_type:
+      # already a bound class method, no need to rebind
+      wrapper = ambiguous_function(func)
+    elif staticmethod == func_type:
+      wrapper = ambiguous_function(func)
+    elif FunctionType == func_type:
+      # instance method
+      wrapper = ambiguous_method(func)
+    else:
+      # inherited method...not yet implemented
+      continue
+
+    # wrap original method so it can be used ambiguously
+    setattr(cls, name, wrapper)
+
+  return cls
+
+
+def ambiguous(obj):
+  if isinstance(obj, (BuiltinFunctionType, FunctionType)):
+    return ambiguous_function(obj)
+
+  if isinstance(obj, type):
+    return ambiguous_class(obj)
+
+  if isinstance(obj, (classmethod, staticmethod)):
+    return ambiguous_descriptor(obj)
+
+  raise NotImplementedError('unsupported type: %s' % type(obj))
