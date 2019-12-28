@@ -33,40 +33,7 @@ class Test(unittest.TestCase):
             def __str__(self):
                 return 'Foo(%s)' % self.name
 
-
-        self.assertTrue(isinstance(type, type(Foo)))
-        self.assertEqual('Foo', Foo.__name__)
-
-        # instance methods
-        if sys.version_info[0] == 2:
-            self.assertTrue(isinstance(Foo.foo, UnboundMethodType))
-        else:
-            # no unbounded type anymore in Python3
-            self.assertTrue(isinstance(Foo.foo, FunctionType))
-
-        with self.assertRaises(TypeError):
-            # fails since method is unbound
-            Foo.foo()
-
-        self.assertEqual('Foo().foo()', Foo().foo)
-        self.assertEqual('Foo().foo()', Foo().foo())
-        self.assertEqual('Foo(abc).foo()', Foo('abc').foo)
-        self.assertEqual('Foo(abc).foo(xyz)', Foo('abc').foo('xyz'))
-
-        # class methods
-        self.assertEqual('%s.bar()' % Foo, Foo.bar)
-        self.assertEqual('%s.bar()' % Foo, Foo.bar())
-        self.assertEqual('%s.bar()' % Foo, Foo().bar)
-        self.assertEqual('%s.bar()' % Foo, Foo().bar())
-        self.assertEqual('%s.bar(abc)' % Foo, Foo.bar('abc'))
-        self.assertEqual('%s.bar(abc)' % Foo, Foo().bar('abc'))
-
-        # static methods
-        self.assertEqual('baz()', Foo.baz)
-        self.assertEqual('baz()', Foo.baz())
-        self.assertEqual('baz()', Foo().baz())
-        self.assertEqual('baz(abc)', Foo.baz('abc'))
-        self.assertEqual('baz(abc)', Foo().baz('abc'))
+        self.do(Foo)
 
 
     def test_helpers(self):
@@ -89,43 +56,7 @@ class Test(unittest.TestCase):
             def __str__(self):
                 return 'Foo(%s)' % self.name
 
-
-        ####  copied verbatim from test_basic()  ####
-
-        self.assertTrue(isinstance(type, type(Foo)))
-        self.assertEqual('Foo', Foo.__name__)
-
-        # instance methods
-        if sys.version_info[0] == 2:
-            self.assertTrue(isinstance(Foo.foo, UnboundMethodType))
-        else:
-            # no unbounded type anymore in Python3
-            self.assertTrue(isinstance(Foo.foo, FunctionType))
-
-        with self.assertRaises(TypeError):
-            # fails since method is unbound
-            Foo.foo()
-
-        self.assertEqual('Foo().foo()', Foo().foo)
-        self.assertEqual('Foo().foo()', Foo().foo())
-        self.assertEqual('Foo(abc).foo()', Foo('abc').foo)
-        self.assertEqual('Foo(abc).foo(xyz)', Foo('abc').foo('xyz'))
-
-        # class methods
-        self.assertEqual('%s.bar()' % Foo, Foo.bar)
-        self.assertEqual('%s.bar()' % Foo, Foo.bar())
-        self.assertEqual('%s.bar()' % Foo, Foo().bar)
-        self.assertEqual('%s.bar()' % Foo, Foo().bar())
-        self.assertEqual('%s.bar(abc)' % Foo, Foo.bar('abc'))
-        self.assertEqual('%s.bar(abc)' % Foo, Foo().bar('abc'))
-
-        # static methods
-        self.assertEqual('baz()', Foo.baz)
-        self.assertEqual('baz()', Foo.baz())
-        self.assertEqual('baz()', Foo().baz())
-        self.assertEqual('baz(abc)', Foo.baz('abc'))
-        self.assertEqual('baz(abc)', Foo().baz('abc'))
-
+        self.do(Foo)
 
 
     def test_double_wrap(self):
@@ -151,9 +82,10 @@ class Test(unittest.TestCase):
             def __str__(self):
                 return 'Foo(%s)' % self.name
 
+        self.do(Foo)
 
-        ####  copied verbatim from test_basic()  ####
 
+    def do(self, Foo):
         self.assertTrue(isinstance(type, type(Foo)))
         self.assertEqual('Foo', Foo.__name__)
 
@@ -168,6 +100,8 @@ class Test(unittest.TestCase):
             # fails since method is unbound
             Foo.foo()
 
+        self.assertEqual('Foo()', str(Foo()))
+
         self.assertEqual('Foo().foo()', Foo().foo)
         self.assertEqual('Foo().foo()', Foo().foo())
         self.assertEqual('Foo(abc).foo()', Foo('abc').foo)
@@ -178,6 +112,7 @@ class Test(unittest.TestCase):
         self.assertEqual('%s.bar()' % Foo, Foo.bar())
         self.assertEqual('%s.bar()' % Foo, Foo().bar)
         self.assertEqual('%s.bar()' % Foo, Foo().bar())
+        self.assertEqual('%s.bar()' % Foo, Foo('abc').bar)
         self.assertEqual('%s.bar(abc)' % Foo, Foo.bar('abc'))
         self.assertEqual('%s.bar(abc)' % Foo, Foo().bar('abc'))
 
