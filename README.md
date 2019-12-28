@@ -83,3 +83,6 @@ print foo()
 foo + 'abc'
 > 'fooabc'
 ```
+
+----
+[![installs](https://img.shields.io/pypi/dm/ambiguous.svg?label=installs)](https://pypi.org/project/ambiguous)
