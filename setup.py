@@ -52,6 +52,7 @@ if __name__ == "__main__":
         author="Daniel Pepper",
         description="python dark magic",
         long_description=open('README.md').read(),
+        long_description_content_type='text/markdown',
         platforms="any",
 
         packages=[ PACKAGE ],
