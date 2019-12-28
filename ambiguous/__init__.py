@@ -13,8 +13,6 @@ __all__ = [
 ]
 
 
-import sys
-
 from .ambiguous import ambiguous, ambiguous_method, ambiguous_classmethod
 from .decorator import decorator
 from .thing_or_things import thing_or_things
@@ -62,4 +60,5 @@ class Ambiguous(object):
 
 
 # overwrite module so that it's callable
+import sys
 sys.modules[__name__] = Ambiguous(sys.modules[__name__])
