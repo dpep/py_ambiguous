@@ -1,3 +1,6 @@
+v0.4.1, 2019-12-27
+    fd05542 abstract commonality into funciton
+    17e0440 add ambiguous class support
 v0.4.0, 2019-02-15
     d503900 Update README.md
     0835bc9 python3 compatibility
