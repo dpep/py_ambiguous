@@ -35,10 +35,10 @@ class Ambiguous(object):
       if x.startswith('__'):
         self.exports.add(x)
 
-  def __call__(self, func):
+  def __call__(self, target):
     # decorate Class
     # https://www.codementor.io/sheena/advanced-use-python-decorators-class-function-du107nxsv
-    return ambiguous(func)
+    return ambiguous(target)
 
 
   def __getattr__(self, method):
