@@ -68,6 +68,7 @@ multiply([1, 2], factor=3)
 > { 1 : 3, 2 : 6 }
 ```
 
+
 #### what, parentheses optional?!   (warning: still highly experimental)
 ```
 import ambiguous
@@ -76,9 +77,9 @@ import ambiguous
 def foo():
   return 'foo'
 
-print foo
+foo
 > 'foo'
-print foo()
+foo()
 > 'foo'
 foo + 'abc'
 > 'fooabc'
