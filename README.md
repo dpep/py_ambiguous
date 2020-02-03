@@ -4,13 +4,15 @@ because magic is fun
 
 
 ### Install
-```pip install ambiguous```
+```bash
+pip install ambiguous
+```
 
 
 ### Usage
 
 #### decorator: because decorators should accept args too
-```
+```python
 @decorator
 def suffix(fn, str_='xyz'):
     '''add a suffix to the result of the wrapped fn'''
@@ -27,6 +29,7 @@ abc()
 @suffix('123')
 def count(repeat=1): return '0' * repeat
 
+
 count()
 > '0_123'
 count(3)
@@ -35,7 +38,7 @@ count(3)
 
 #### thing_or_things: merges gets and multigets
 
-```
+```python
 @thing_or_things
 def itself(args):
   return { x : x for x in args }
@@ -70,7 +73,7 @@ multiply([1, 2], factor=3)
 
 
 #### what, parentheses optional?!   (warning: still highly experimental)
-```
+```python
 import ambiguous
 
 @ambiguous
