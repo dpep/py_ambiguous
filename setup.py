@@ -47,7 +47,7 @@ if __name__ == "__main__":
     setuptools.setup(
         name=PACKAGE,
         version=__version__,
-        url="https://github.com/dpep/py%s" % PACKAGE,
+        url="https://github.com/dpep/py_%s" % PACKAGE,
         license="MIT",
         author="Daniel Pepper",
         description="python dark magic",
