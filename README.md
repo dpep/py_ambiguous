@@ -1,6 +1,6 @@
 ambiguous
 ======
-because magic is fun
+A little ambiguity can make life easier.
 
 
 ### Install
