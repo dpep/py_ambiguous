@@ -26,9 +26,9 @@ def abc(): return 'abc'
 abc()
 > 'abc_xyz'
 
+
 @suffix('123')
 def count(repeat=1): return '0' * repeat
-
 
 count()
 > '0_123'
