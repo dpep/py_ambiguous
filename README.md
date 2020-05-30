@@ -1,6 +1,6 @@
 ambiguous
 ======
-A little ambiguity can make life easier.
+A little flexibility makes life way easier.
 
 
 ### Install
