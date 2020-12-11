@@ -13,6 +13,8 @@ pip install ambiguous
 
 #### decorator: because decorators should accept args too
 ```python
+from ambiguous import decorator
+
 @decorator
 def suffix(fn, str_='xyz'):
     '''add a suffix to the result of the wrapped fn'''
@@ -39,6 +41,8 @@ count(3)
 #### thing_or_things: merges gets and multigets
 
 ```python
+from ambiguous import thing_or_things
+
 @thing_or_things
 def itself(args):
   return { x : x for x in args }
