@@ -37,7 +37,6 @@ class Ambiguous(object):
 
   def __call__(self, target):
     # decorate Class
-    # https://www.codementor.io/sheena/advanced-use-python-decorators-class-function-du107nxsv
     return ambiguous(target)
 
 

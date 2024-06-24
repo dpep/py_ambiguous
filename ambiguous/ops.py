@@ -9,6 +9,7 @@ import operator
 
 
 op_exceptions = set([
+  '__call__',
   '__class__',
   '__doc__',
   '__name__',

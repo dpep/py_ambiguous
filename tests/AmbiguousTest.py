@@ -135,7 +135,7 @@ class Test(unittest.TestCase):
 
 
     def test_obj_from_function(self):
-        class Foo(object):
+        class Foo:
             def __init__(self, name):
                 self.name = name
             def getName(self):
@@ -152,32 +152,11 @@ class Test(unittest.TestCase):
 
         self.assertTrue(isinstance(foo, Foo))
         self.assertTrue(isinstance(foo(), Foo))
+        self.assertEqual(Foo, foo.__class__)
         self.assertEqual('', foo.getName())
         self.assertEqual('bob', foo('bob').getName())
         self.assertEqual('__str__', str(foo))
         self.assertEqual('__call__', foo()())
-
-
-    def test_old_obj_from_func(self):
-        class Foo():
-            def __str__(self):
-                return '__str__'
-
-        @ambiguous
-        def foo():
-            return Foo()
-
-        self.assertEqual('__str__', str(foo))
-
-        # isinstance() does not work properly because type(Foo())
-        # has type 'instance', so use __class__
-        if sys.version_info[0] == 2:
-            #   ie.  foo -> instance type -> class type
-            self.assertEqual(Foo, foo.__class__.__class__)
-        else:
-            # Python3 fixed this quirk so Class.__class__ works as expected
-            self.assertEqual(Foo, foo.__class__)
-
 
 
 

@@ -1,7 +1,7 @@
 import inspect
 import sys
 
-from collections import Iterable
+from collections.abc import Iterable
 from functools import wraps
 
 from .decorator import decorator
@@ -12,11 +12,7 @@ __all__ = [ 'thing_or_things' ]
 
 @decorator
 def thing_or_things(fn, arg_name=None):
-  if sys.version_info[0] == 2:
-    # backwards compatibility for Python2
-    spec = inspect.getargspec(fn)
-  else:
-    spec = inspect.getfullargspec(fn)
+  spec = inspect.getfullargspec(fn)
 
   if arg_name:
     if spec.varargs == arg_name:

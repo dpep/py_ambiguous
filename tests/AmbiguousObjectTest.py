@@ -88,13 +88,7 @@ class Test(unittest.TestCase):
     def do(self, Foo):
         self.assertTrue(isinstance(type, type(Foo)))
         self.assertEqual('Foo', Foo.__name__)
-
-        # instance methods
-        if sys.version_info[0] == 2:
-            self.assertTrue(isinstance(Foo.foo, UnboundMethodType))
-        else:
-            # no unbounded type anymore in Python3
-            self.assertTrue(isinstance(Foo.foo, FunctionType))
+        self.assertTrue(isinstance(Foo.foo, FunctionType))
 
         with self.assertRaises(TypeError):
             # fails since method is unbound

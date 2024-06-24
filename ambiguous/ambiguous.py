@@ -1,6 +1,4 @@
 import inspect
-import sys
-import types
 
 from functools import partial
 from types import *
@@ -15,7 +13,7 @@ __all__ = [
 ]
 
 
-class AmbiguousType(object):
+class AmbiguousType:
   pass
 
 
@@ -26,34 +24,15 @@ def ambiguous_function(func, *args, **kwargs):
     def __call__(self, *args, **kwargs):
       return wrapper(*args, **kwargs)
 
-  # monkey patch pass-through wrappers for all operators and special
-  # functions, eg. __eq__, __str__
+  # delegate all operators and special functions, eg. __eq__, __str__
   for op in ops:
     def exec_op(op):
       def exec_op(self, *args, **kwargs):
-        # call ambiguated function to retrieve result upon which user
-        # is intending to operate on
+        # retrieve object upon which user is intending to operate
         obj = self()
 
         # retrieve function pointer for user-intended call
-        attr = getattr(obj, op, None)
-
-        if attr is None:
-          # backwards compatibility for objects not inheritting from 'object'
-
-          if op == '__getattribute__':
-            attr = getattr(obj, args[0], None)
-            args = tuple(args[1:])
-          elif op == '__repr__':
-            # alias __repr__ => __str__
-            attr = getattr(obj, '__str__', None)
-
-        if attr is None:
-          raise AttributeError(
-            "type object '%s' has no attribute '%s'" % (
-              type(obj), op
-            )
-          )
+        attr = getattr(obj, op)
 
         # make user-intended function call
         return attr(*args, **kwargs)
@@ -73,12 +52,7 @@ def ambiguous_method(func):
         # as the first arg
         return ambiguous_function(func, obj)
 
-      if sys.version_info[0] == 2:
-        # called with class not instance, so return unbound method
-        return types.MethodType(func, None, objtype)
-      else:
-        # unbounded functions are just functions in Python3
-        return func
+      return func
 
   return AmbiguousMethod()
 
