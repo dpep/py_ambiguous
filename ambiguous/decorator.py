@@ -1,6 +1,4 @@
-import types
-
-from functools import partial, wraps, update_wrapper
+from functools import wraps, update_wrapper
 from inspect import isfunction
 
 
@@ -13,10 +11,6 @@ Enable a decorator to accept args and kwargs.
 def decorator(decorator_fn):
   @wraps(decorator_fn)
   def wrapper(*args, **kwargs):
-    # called with no args...try again
-    if not args and not kwargs:
-      return wrapper
-
     if args:
       if callable(args[0]):
         # apply desired decorator
@@ -52,11 +46,15 @@ def decorator(decorator_fn):
 
       return arg_wrapper
 
-    # given kwargs and still need function
-    @wraps(decorator_fn)
-    def kwarg_wrapper(*args, **more_kwargs):
-      return wrapper(*args, **dict(kwargs, **more_kwargs))
-    return kwarg_wrapper
+    if kwargs:
+      # accumulate kwargs until function is provided
+      @wraps(decorator_fn)
+      def kwarg_wrapper(*args, **more_kwargs):
+        return wrapper(*args, **dict(kwargs, **more_kwargs))
+      return kwarg_wrapper
+
+    # no args nor kwargs
+    return wrapper
 
 
   return wrapper

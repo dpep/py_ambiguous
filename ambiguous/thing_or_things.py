@@ -1,8 +1,4 @@
 import inspect
-import sys
-
-from collections.abc import Iterable
-from functools import wraps
 
 from .decorator import decorator
 
