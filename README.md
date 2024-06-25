@@ -1,6 +1,6 @@
 ambiguous
 ======
-A little flexibility makes life way easier.
+flexibility when you need it
 
 
 ### Install
@@ -11,7 +11,7 @@ pip install ambiguous
 
 ### Usage
 
-#### decorator: because decorators should accept args too
+#### decorator: allow decorators to accept arguments
 ```python
 from ambiguous import decorator
 
@@ -38,7 +38,7 @@ count(3)
 > '000_123'
 ```
 
-#### thing_or_things: merges gets and multigets
+#### thing_or_things: combine gets and multigets
 
 ```python
 from ambiguous import thing_or_things
@@ -76,7 +76,7 @@ multiply([1, 2], factor=3)
 ```
 
 
-#### what, parentheses optional?!   (warning: still highly experimental)
+#### optional parentheses  (warning: still experimental)
 ```python
 import ambiguous
 
