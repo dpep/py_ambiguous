@@ -28,7 +28,7 @@ def prefix(fn, pre='abc', repeat=1):
     return wrapper
 
 
-class DecoratorTest(unittest.TestCase):
+class TestDecorator(unittest.TestCase):
 
     def test_basics(self):
         @decorator

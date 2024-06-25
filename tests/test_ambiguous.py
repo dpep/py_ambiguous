@@ -10,7 +10,7 @@ import ambiguous
 
 
 
-class Test(unittest.TestCase):
+class TestAmbiguous(unittest.TestCase):
     def test_basic(self):
         @ambiguous
         def foo():

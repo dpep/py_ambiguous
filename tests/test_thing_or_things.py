@@ -2,7 +2,6 @@
 
 import os
 import sys
-import types
 import unittest
 
 sys.path = [ os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) ] + sys.path
@@ -15,7 +14,7 @@ def itself(args):
   return { x : x for x in args }
 
 
-class ThingOrThingTest(unittest.TestCase):
+class TestThingOrThing(unittest.TestCase):
 
     def test_basics(self):
         self.assertEqual(3, itself(3))

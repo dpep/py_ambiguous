@@ -12,7 +12,7 @@ import ambiguous
 
 
 
-class Test(unittest.TestCase):
+class TestAmbiguousObject(unittest.TestCase):
     def test_basic(self):
         @ambiguous
         class Foo(object):
