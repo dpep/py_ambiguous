@@ -103,7 +103,7 @@ class TestThingOrThing(unittest.TestCase):
 
     # ambiguous which arg is for things
 
-    with self.assertRaises(TypeError):
+    with self.assertRaises(ValueError):
       @thing_or_things
       def foo(x, y): pass
 

@@ -32,7 +32,7 @@ def thing_or_things(fn, arg_name=None):
     if len(spec.args) == 1:
       # grab first and only arg
       arg_name = spec.args[0]
-    elif len(spec.args) - len(spec.defaults) == 1:
+    elif len(spec.args) - len(spec.defaults or []) == 1:
       # if all args have defaults except the first one
       arg_name = spec.args[0]
     else:

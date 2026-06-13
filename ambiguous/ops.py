@@ -14,6 +14,16 @@ op_exceptions = set([
   '__doc__',
   '__name__',
   '__new__',
+
+  # module attributes that leak in from scanning the `operator` module below,
+  # not actual operators
+  '__all__',
+  '__builtins__',
+  '__cached__',
+  '__file__',
+  '__loader__',
+  '__package__',
+  '__spec__',
 ])
 
 objs = [
