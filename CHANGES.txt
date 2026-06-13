@@ -1,3 +1,9 @@
+0.5.1, 2026-06-13
+- fix thing_or_things arg-detection crash and tidy ops
+- build AmbiguousFunction once instead of per call
+- gate matrix behind a single required `test` check
+- modernize packaging and CI
+
 v0.5.0, 2024-06-25
     2de9dc0 test coverage
     b67872a simplify
