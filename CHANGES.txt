@@ -4,84 +4,91 @@
 - gate matrix behind a single required `test` check
 - modernize packaging and CI
 
-v0.5.0, 2024-06-25
-    2de9dc0 test coverage
-    b67872a simplify
-    d47343a editorconfig
-    0812e77 readme update
-    559da67 rm tox
-    c6576f5 pyproject upgrade (#1)
-    acf71a9 unittest naming standards
-    176f734 drop Python 2 support
-v0.4.1, 2019-12-27
-    fd05542 abstract commonality into funciton
-    17e0440 add ambiguous class support
-v0.4.0, 2019-02-15
-    d503900 Update README.md
-    0835bc9 python3 compatibility
-    fe02027 python3 compatibility
-    2b71a4b organize
-    e1174a3 gc incomplete work
-    2b5e3c0 s/assertEquals/assertEqual/
-    f2befd5 move to relative import for python3
-    5a2e273 python 3 upgrade
-    2895dd4 Update README.md
-v0.3.2, 2018-09-10
-    efd22d4 return proper type
-    d445456 more test coverage
-    5945043 fix old obj and add test
-    4d2ab6b old style class support
-    2453c2a simplify ambiguous logic
-v0.3.1, 2018-04-24
-    7f2468d enable thing_or_things fn to skip return values and just use input wrapper
-v0.3.0, 2018-04-16
-    a208c94 remove thing_or_things support for varargs for now because it was too ambiguous
-    62e7abf no longer needed
-    e2e1e87 counter example
-    42e4340 expand tests
-    d854b11 focus decorator module, rename is_class and is_self
-    f714968 cleanup
-    bd85679 rename
-    d71ca32 better testing
-    721b05b move selfish into its own package
-v0.2.1, 2018-03-23
-    2488fcb wire things up
-    0104741 Update README.md
-    3e35c37 expand selfish to cover class methods also
-    60be346 more testing, cleanup
-    8b0d3ec expand selfish test coverage
-    9716bbc decorate classes properly
-    a7bc3d1 Update README.md
-    543811d Update README.md
-    9cd892c add selfish decorator, because who has time to type self everywhere
-    74f7647 upgrades to fix some bugs involving static methods
-    cb3fd5a expand test coverage
-    7d1c5dc add kwargs
-    6b12288 auto wrap decorator
-    4e972cf add decorator.is_class
-    20a0481 cleanup
-    1e6fe20 allow call with empty args
-    a1af3ff add decorator.is_self and inspector module, plus tests
-    15643e7 add __all__
-    a07f278 more tests
-    efaf3f9 masquerade better
-    9feaa2c better error handling for thing_or_things
-    8d1302e cleanup
-    8c5770f fix sequential arg bug, expand tests
-    ce56d34 add lamda coverage, clean up names
-    ad0af45 enable positional args in addition to kwargs. add tests
-    fb66040 add test coverage for ambiguous decorator
-    db8815b add tests to cover object instance/class/static methods
-    978e2b4 add test to cover thing or things used on class methods
-    2fede34 Update README.md
-    a04d20c add thing_or_things plus tests and module import cleanup
-v0.1.0, 2018-02-22
-    adc0cab cleanup
-    15e3019 refactor, mascarade module to enable @ambiguous
-    d17dc0c s/function/method/
-    6814e7d add instance, class, and static methods
-    333bdfb simplify
-    234ec17 add object test
-    df7f402 expand test coverage
-v0.0.1, 2018-02-22
+0.5.0, 2024-06-25
+- test coverage
+- simplify
+- editorconfig
+- readme update
+- rm tox
+- pyproject upgrade (#1)
+- unittest naming standards
+- drop Python 2 support
 
+0.4.1, 2019-12-27
+- abstract commonality into funciton
+- add ambiguous class support
+
+0.4.0, 2019-02-15
+- Update README.md
+- python3 compatibility
+- python3 compatibility
+- organize
+- gc incomplete work
+- s/assertEquals/assertEqual/
+- move to relative import for python3
+- python 3 upgrade
+- Update README.md
+
+0.3.2, 2018-09-10
+- return proper type
+- more test coverage
+- fix old obj and add test
+- old style class support
+- simplify ambiguous logic
+
+0.3.1, 2018-04-24
+- enable thing_or_things fn to skip return values and just use input wrapper
+
+0.3.0, 2018-04-16
+- remove thing_or_things support for varargs for now because it was too ambiguous
+- no longer needed
+- counter example
+- expand tests
+- focus decorator module, rename is_class and is_self
+- cleanup
+- rename
+- better testing
+- move selfish into its own package
+
+0.2.1, 2018-03-23
+- wire things up
+- Update README.md
+- expand selfish to cover class methods also
+- more testing, cleanup
+- expand selfish test coverage
+- decorate classes properly
+- Update README.md
+- Update README.md
+- add selfish decorator, because who has time to type self everywhere
+- upgrades to fix some bugs involving static methods
+- expand test coverage
+- add kwargs
+- auto wrap decorator
+- add decorator.is_class
+- cleanup
+- allow call with empty args
+- add decorator.is_self and inspector module, plus tests
+- add __all__
+- more tests
+- masquerade better
+- better error handling for thing_or_things
+- cleanup
+- fix sequential arg bug, expand tests
+- add lamda coverage, clean up names
+- enable positional args in addition to kwargs. add tests
+- add test coverage for ambiguous decorator
+- add tests to cover object instance/class/static methods
+- add test to cover thing or things used on class methods
+- Update README.md
+- add thing_or_things plus tests and module import cleanup
+
+0.1.0, 2018-02-22
+- cleanup
+- refactor, mascarade module to enable @ambiguous
+- s/function/method/
+- add instance, class, and static methods
+- simplify
+- add object test
+- expand test coverage
+
+0.0.1, 2018-02-22
