@@ -13,6 +13,19 @@ import ambiguous
 
 
 class TestAmbiguousObject(unittest.TestCase):
+  def test_module_is_callable(self):
+    # the module is replaced with a callable wrapper so it can be used
+    # directly as a decorator, eg. `import ambiguous; @ambiguous`
+    self.assertTrue(callable(ambiguous))
+
+    @ambiguous
+    def foo():
+      return 'foo'
+
+    self.assertEqual('foo', foo)
+    self.assertEqual('foo', foo())
+
+
   def test_basic(self):
     @ambiguous
     class Foo(object):
