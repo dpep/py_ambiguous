@@ -1,7 +1,7 @@
 import inspect
 
 from functools import partial
-from types import *
+from types import BuiltinFunctionType, FunctionType, MethodType
 
 from .ops import ops
 
@@ -17,31 +17,33 @@ class AmbiguousType:
   pass
 
 
+class AmbiguousFunction(AmbiguousType):
+  def __call__(self, *args, **kwargs):
+    # the wrapped partial is read out-of-band because __getattribute__ is
+    # itself delegated (below), so plain `self._wrapper` would recurse
+    return object.__getattribute__(self, '_wrapper')(*args, **kwargs)
+
+
+def _delegate(op):
+  def exec_op(self, *args, **kwargs):
+    # retrieve object upon which user is intending to operate, then make
+    # the user-intended function call
+    return getattr(self(), op)(*args, **kwargs)
+  return exec_op
+
+
+# delegate all operators and special functions, eg. __eq__, __str__
+for op in ops:
+  setattr(AmbiguousFunction, op, _delegate(op))
+
+
 def ambiguous_function(func, *args, **kwargs):
-  wrapper = partial(func, *args, **kwargs)
+  # call __new__ so as not to trigger the delegated __init__()
+  obj = AmbiguousFunction.__new__(AmbiguousFunction)
 
-  class AmbiguousFunction(AmbiguousType):
-    def __call__(self, *args, **kwargs):
-      return wrapper(*args, **kwargs)
-
-  # delegate all operators and special functions, eg. __eq__, __str__
-  for op in ops:
-    def exec_op(op):
-      def exec_op(self, *args, **kwargs):
-        # retrieve object upon which user is intending to operate
-        obj = self()
-
-        # retrieve function pointer for user-intended call
-        attr = getattr(obj, op)
-
-        # make user-intended function call
-        return attr(*args, **kwargs)
-      return exec_op
-
-    setattr(AmbiguousFunction, op, exec_op(op))
-
-  # call __new__ so as not to trigger pass-through __init__()
-  return AmbiguousFunction.__new__(AmbiguousFunction)
+  # set directly, since __setattr__ is delegated too
+  object.__setattr__(obj, '_wrapper', partial(func, *args, **kwargs))
+  return obj
 
 
 def ambiguous_method(func):
