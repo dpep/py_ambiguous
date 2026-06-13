@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools >= 61"]
+requires = ["setuptools >= 77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,13 +8,13 @@ authors = [{name = "Daniel Pepper"}]
 dynamic = ["version"]
 description = "flexibility when you need it"
 readme = "README.md"
-license = {file = "LICENSE.txt"}
+license = "MIT"
+license-files = ["LICENSE.txt"]
 classifiers = [
   # https://pypi.python.org/pypi?%3Aaction=list_classifiers
-  'License :: OSI Approved :: MIT License',
   'Topic :: Utilities',
 ]
-requires-python = ">= 3"
+requires-python = ">= 3.8"
 
 [project.urls]
 Homepage = "https://github.com/dpep/py_ambiguous"
