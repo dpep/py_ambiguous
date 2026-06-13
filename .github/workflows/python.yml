@@ -7,7 +7,7 @@ on:
     types: [ opened, edited, synchronize ]
 
 jobs:
-  test:
+  unittest:
     runs-on: ubuntu-latest
 
     strategy:
@@ -24,3 +24,13 @@ jobs:
     - name: install dependencies
       run: pip install -e .
     - run: python -m unittest
+
+  # single required status check that gates on the whole matrix
+  test:
+    needs: unittest
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+    - if: needs.unittest.result != 'success'
+      run: exit 1
