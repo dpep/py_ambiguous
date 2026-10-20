@@ -4,7 +4,9 @@ on:
   push:
     branches: [ main ]
   pull_request:
-    types: [ opened, edited, synchronize ]
+
+permissions:
+  contents: read
 
 jobs:
   unittest:
@@ -12,12 +14,12 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [ "3.12", "3.13", "3.14" ]
+        python-version: [ "3.12", "3.13", "3.14", "3.15" ]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Python setup
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
         cache: pip
