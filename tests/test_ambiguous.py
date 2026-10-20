@@ -106,6 +106,11 @@ class TestAmbiguous(unittest.TestCase):
     self.assertEqual(1, baz['a'])
 
 
+  def test_unsupported_type(self):
+    with self.assertRaises(TypeError):
+      ambiguous(123)
+
+
   def test_counts(self):
     # don't call functions more than intended
 
