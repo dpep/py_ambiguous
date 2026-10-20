@@ -1,49 +1,20 @@
-#!/usr/bin/env python
-
 """
-Generage a list of object methods that can be overridden
+Special methods that AmbiguousFunction delegates to the wrapped result
 """
 
 
-import operator
+_excluded = {
+  # owned by AmbiguousFunction itself
+  '__call__', '__class__', '__doc__', '__new__',
 
+  # each access yields a fresh result, so there is nothing to mutate in
+  # place; without these, `x += y` falls back to `x = x + y`
+  '__iadd__', '__imul__', '__ior__',
+}
 
-op_exceptions = set([
-  '__call__',
-  '__class__',
-  '__doc__',
-  '__name__',
-  '__new__',
-
-  # module attributes that leak in from scanning the `operator` module below,
-  # not actual operators
-  '__all__',
-  '__builtins__',
-  '__cached__',
-  '__file__',
-  '__loader__',
-  '__package__',
-  '__spec__',
-])
-
-objs = [
-  dict,
-  float,
-  int,
-  list,
-  object,
-  operator,
-  str,
-]
-
-
-ops = set()
-for obj in objs:
-  for op in dir(obj):
-    if op.startswith('__') and op.endswith('__') and op not in op_exceptions:
-      ops.add(op)
-
-
-if __name__ == '__main__':
-    for op in sorted(ops):
-      print(op)
+ops = {
+  op
+  for obj in (dict, float, int, list, object, str)
+  for op in dir(obj)
+  if op.startswith('__') and op.endswith('__') and op not in _excluded
+}

@@ -2,6 +2,7 @@ Unreleased
 - `ambiguous()` now raises TypeError instead of NotImplementedError for unsupported types; update any `except NotImplementedError`
 - fix ambiguous methods on falsy instances, and classmethods called via a subclass of an @ambiguous class
 - fix `inspect.signature` raising "wrapper loop" when a @decorator returns its target unchanged
+- fix `+=` and other in-place operators on ambiguous functions returning immutable values, eg. int or str
 
 0.5.1, 2026-06-13
 - fix thing_or_things arg-detection crash and tidy ops
