@@ -92,6 +92,33 @@ class TestAmbiguousObject(unittest.TestCase):
     self.do(Foo)
 
 
+  def test_falsy_instance(self):
+    class Empty:
+      def __len__(self):
+        return 0
+
+      @ambiguous.method
+      def name(self):
+        return 'empty'
+
+    self.assertEqual('empty', Empty().name)
+    self.assertEqual('empty', Empty().name())
+
+
+  def test_subclass_classmethod(self):
+    @ambiguous
+    class A:
+      @classmethod
+      def who(cls):
+        return cls.__name__
+
+    class B(A): pass
+
+    self.assertEqual('B', B.who)
+    self.assertEqual('B', B.who())
+    self.assertEqual('B', B().who())
+
+
   def do(self, Foo):
     self.assertTrue(isinstance(type, type(Foo)))
     self.assertEqual('Foo', Foo.__name__)
