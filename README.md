@@ -78,7 +78,29 @@ foo
 > 'foo'
 foo + 'abc'
 > 'fooabc'
+
+
+# works on methods too
+@ambiguous
+class Greeter:
+  def __init__(self, name):
+    self.name = name
+
+  def hello(self, greeting='hello'):
+    return '%s %s' % (greeting, self.name)
+
+Greeter('bob').hello
+> 'hello bob'
+Greeter('bob').hello('hi')
+> 'hi bob'
+
+# or pick individual methods with
+# @ambiguous.method, @ambiguous.classmethod, @ambiguous.staticmethod
 ```
+
+Each access calls the function again, so changes to its result don't stick (appending to a returned list mutates a throwaway copy), and stateful results like iterators and context managers aren't supported.
+
+`@decorator` treats a callable first positional argument as the function to decorate, so pass callable options by keyword, eg. `@on_error(handler=log)`.
 
 ----
 [![installs](https://img.shields.io/pypi/dm/ambiguous.svg?label=installs)](https://pypi.org/project/ambiguous)
