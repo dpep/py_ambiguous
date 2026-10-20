@@ -7,3 +7,8 @@ eggs
 sdist
 
 *.pyc
+
+__pycache__/
+.tox/
+.venv/
+.DS_Store

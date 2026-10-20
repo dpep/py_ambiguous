@@ -1,10 +1,5 @@
-#!/usr/bin/env python
-
-import os
-import sys
 import unittest
 
-sys.path = [ os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) ] + sys.path
 from ambiguous import thing_or_things
 
 
@@ -182,7 +177,7 @@ class TestThingOrThing(unittest.TestCase):
   def test_types(self):
     self.assertEqual('a', itself('a'))
     self.assertEqual('abc', itself('abc'))
-    self.assertEqual(u'abc', itself(u'abc'))
+    self.assertEqual('abc', itself('abc'))
     self.assertEqual({ 'a' : 'a', 'b' : 'b' }, itself(['a', 'b']))
     self.assertEqual(1, itself(1))
     self.assertEqual(1.0, itself(1.0))
