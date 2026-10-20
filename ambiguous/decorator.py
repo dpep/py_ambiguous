@@ -5,56 +5,42 @@ from inspect import isfunction
 __all__ = [ 'decorator' ]
 
 
-"""
-Enable a decorator to accept args and kwargs.
-"""
 def decorator(decorator_fn):
+  """
+  Enable a decorator to accept args and kwargs.
+  """
   @wraps(decorator_fn)
   def wrapper(*args, **kwargs):
-    if args:
-      if callable(args[0]):
-        # apply desired decorator
-        decorated = decorator_fn(*args, **kwargs)
+    if args and callable(args[0]):
+      # apply desired decorator
+      decorated = decorator_fn(*args, **kwargs)
 
-        if isfunction(decorated):
-          # mask signature
-          decorated = update_wrapper(decorated, args[0])
+      # mask signature, unless the target was returned as-is, which
+      # would make it its own __wrapped__
+      if isfunction(decorated) and decorated is not args[0]:
+        update_wrapper(decorated, args[0])
 
-        return decorated
+      return decorated
 
-      # passed an arg, but not the function to decorate. wrap
-      # and wait for more.
-      @wraps(decorator_fn)
-      def arg_wrapper(*more_args, **more_kwargs):
-        if more_args and callable(more_args[0]):
-          if len(more_args) > 1:
-            # arg order is ambiguous
-            raise ValueError(
-              'expecting either callable or args, not both: %s' % str(more_args)
-            )
+    # no function to decorate yet. wrap and accumulate args and kwargs
+    # until it arrives.
+    @wraps(decorator_fn)
+    def collect(*more_args, **more_kwargs):
+      if more_args and callable(more_args[0]):
+        if args and len(more_args) > 1:
+          # arg order is ambiguous
+          raise ValueError(
+            'expecting either callable or args, not both: %s' % str(more_args)
+          )
 
-          # prepend callable
-          new_args = more_args + args
-        else:
-          # append additional args
-          new_args = args + more_args
+        # prepend callable
+        new_args = more_args + args
+      else:
+        # append additional args
+        new_args = args + more_args
 
-        # merge in new kwargs
-        new_kwargs = dict(kwargs, **more_kwargs)
+      return wrapper(*new_args, **{ **kwargs, **more_kwargs })
 
-        return wrapper(*new_args, **new_kwargs)
-
-      return arg_wrapper
-
-    if kwargs:
-      # accumulate kwargs until function is provided
-      @wraps(decorator_fn)
-      def kwarg_wrapper(*args, **more_kwargs):
-        return wrapper(*args, **dict(kwargs, **more_kwargs))
-      return kwarg_wrapper
-
-    # no args nor kwargs
-    return wrapper
-
+    return collect
 
   return wrapper

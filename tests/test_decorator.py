@@ -268,6 +268,21 @@ class TestDecorator(unittest.TestCase):
       def one(): pass
 
 
+  def test_returns_target(self):
+    registry = []
+
+    @decorator
+    def register(fn):
+      registry.append(fn)
+      return fn
+
+    @register
+    def bar(x, y): pass
+
+    self.assertEqual([ bar ], registry)
+    self.assertEqual([ 'x', 'y' ], list(inspect.signature(bar).parameters))
+
+
   def test_double_decorate(self):
     @decorator
     def double_that(fn):
