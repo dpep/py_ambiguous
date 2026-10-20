@@ -1,3 +1,5 @@
+Unreleased
+
 0.5.1, 2026-06-13
 - fix thing_or_things arg-detection crash and tidy ops
 - build AmbiguousFunction once instead of per call
