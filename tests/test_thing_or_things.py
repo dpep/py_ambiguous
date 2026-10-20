@@ -214,9 +214,7 @@ class TestThingOrThing(unittest.TestCase):
 
 
   def test_return_type(self):
-    self.assertTrue(
-      dict, type(thing_or_things(lambda things: {})([]))
-    )
+    self.assertEqual({}, thing_or_things(lambda things: {})([]))
 
     with self.assertRaises(TypeError):
       thing_or_things(lambda things: 1)(1)
