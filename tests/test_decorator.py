@@ -1,11 +1,6 @@
-#!/usr/bin/env python
-
 import inspect
-import os
-import sys
 import unittest
 
-sys.path = [ os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) ] + sys.path
 from ambiguous import decorator
 
 
