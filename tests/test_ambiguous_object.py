@@ -1,6 +1,6 @@
 import unittest
 
-from types import *
+from types import FunctionType, ModuleType
 
 import ambiguous
 
@@ -8,9 +8,10 @@ import ambiguous
 
 class TestAmbiguousObject(unittest.TestCase):
   def test_module_is_callable(self):
-    # the module is replaced with a callable wrapper so it can be used
-    # directly as a decorator, eg. `import ambiguous; @ambiguous`
+    # the module is made callable so it can be used directly as a
+    # decorator, eg. `import ambiguous; @ambiguous`
     self.assertTrue(callable(ambiguous))
+    self.assertIsInstance(ambiguous, ModuleType)
 
     @ambiguous
     def foo():
