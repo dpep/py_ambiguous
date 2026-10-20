@@ -112,6 +112,25 @@ class TestAmbiguous(unittest.TestCase):
     self.assertEqual(1, baz['a'])
 
 
+  def test_inplace_ops(self):
+    @ambiguous
+    def num():
+      return 10
+
+    @ambiguous
+    def letters():
+      return 'ab'
+
+    # falls back to `x = x + y` rather than mutating the result
+    x = num
+    x += 1
+    self.assertEqual(11, x)
+
+    s = letters
+    s += 'c'
+    self.assertEqual('abc', s)
+
+
   def test_counts(self):
     # don't call functions more than intended
 
