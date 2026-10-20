@@ -95,4 +95,7 @@ def ambiguous(obj):
   if isinstance(obj, (classmethod, staticmethod)):
     return _AmbiguousDescriptor(obj)
 
-  raise NotImplementedError('unsupported type: %s' % type(obj))
+  raise TypeError(
+    'expected a function, class, classmethod or staticmethod, got %s'
+    % type(obj).__name__
+  )
