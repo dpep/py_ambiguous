@@ -48,6 +48,20 @@ class TestThingOrThing(unittest.TestCase):
     )
 
 
+  def test_thing_by_keyword(self):
+    self.assertEqual(1, itself(args=1))
+    self.assertEqual({ 1 : 1, 2 : 2 }, itself(args=[ 1, 2 ]))
+
+
+  def test_thing_default(self):
+    @thing_or_things('things')
+    def defaulted(things=(1,)):
+      return { x : x for x in things }
+
+    self.assertEqual({ 1 : 1 }, defaulted())
+    self.assertEqual(2, defaulted(2))
+
+
   def test_kwargs(self):
     @thing_or_things
     def keywords(things, **kwargs):
@@ -145,6 +159,19 @@ class TestThingOrThing(unittest.TestCase):
     # too many args
     with self.assertRaises(TypeError):
       foo(1, 2, 3, 4)
+
+    # bad calls never reach the function
+    called = []
+
+    @thing_or_things
+    def spy(things):
+      called.append(things)
+      return { x : x for x in things }
+
+    with self.assertRaises(TypeError):
+      spy()
+
+    self.assertEqual([], called)
 
 
   def test_obj_context(self):

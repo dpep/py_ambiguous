@@ -41,31 +41,23 @@ def thing_or_things(fn, arg_name=None):
       )
 
 
+  sig = inspect.signature(fn)
+
   def wrapper(*args, **kwargs):
-    single_thing = False
+    # bind like a real call, so the thing can be passed by keyword or default
+    try:
+      bound = sig.bind(*args, **kwargs)
+    except TypeError as e:
+      raise TypeError('%s(): %s' % (fn.__name__, e)) from None
+    bound.apply_defaults()
 
-    # grab specified thing_or_things arg
-    offset = spec.args.index(arg_name)
-
-    if len(args) < len(spec.args) - len(spec.defaults or []):
-      # not enough args...let function raise TypeError
-      fn(*args, **kwargs)
-
-      # should never get here, but just in case...
-      assert False, '%s() is missing arguments' % fn.__name__
-
-    if isinstance(args[offset], (list, set, tuple)):
-      # cast to list
-      things = list(args[offset])
-    else:
-      # pack into list
-      things = [ args[offset] ]
-      single_thing = True
+    thing_or_things = bound.arguments[arg_name]
+    single_thing = not isinstance(thing_or_things, (list, set, tuple))
+    things = [ thing_or_things ] if single_thing else list(thing_or_things)
 
     # replace thing_or_things arg and make function call
-    args = list(args)
-    args[offset] = things
-    res = fn(*args, **kwargs)
+    bound.arguments[arg_name] = things
+    res = fn(*bound.args, **bound.kwargs)
 
     if res is None:
       return
