@@ -13,14 +13,14 @@ def power(fn, exponent=2):
 def suffix(fn, str_='abc'):
   '''add a suffix to the result of the wrapped fn'''
   def wrapper(*args, **kwargs):
-    return '%s_%s' % (fn(*args, **kwargs), str_)
+    return f'{fn(*args, **kwargs)}_{str_}'
   return wrapper
 
 @decorator
 def prefix(fn, pre='abc', repeat=1):
   '''prefix and repeat the result of the wrapped fn'''
   def wrapper(*args, **kwargs):
-    return '%s_%s' % (
+    return '{}_{}'.format(
       pre,
       ''.join([ fn(*args, **kwargs) for i in range(repeat) ]),
     )
@@ -216,7 +216,7 @@ class TestDecorator(unittest.TestCase):
       return wrapper
 
 
-    class Foo():
+    class Foo:
       def itself(self, val): return val
 
       @double
@@ -234,7 +234,7 @@ class TestDecorator(unittest.TestCase):
     def itself(obj): return obj
 
     @itself
-    class Foo():
+    class Foo:
       def one(self): return 1
 
     self.assertTrue(inspect.isclass(Foo))

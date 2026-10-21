@@ -3,7 +3,6 @@ import unittest
 from ambiguous import thing_or_things
 
 
-
 @thing_or_things
 def itself(args):
   return { x : x for x in args }
@@ -97,7 +96,7 @@ class TestThingOrThing(unittest.TestCase):
   def test_arg_name(self):
     @thing_or_things('args')
     def prefix(prefix, args):
-      return { x : "%s%s" % (prefix, x) for x in args }
+      return { x : f"{prefix}{x}" for x in args }
 
     self.assertEqual('+1', prefix('+', 1))
     self.assertEqual({ 1 : '+1' }, prefix('+', [ 1 ]))
@@ -212,16 +211,16 @@ class TestThingOrThing(unittest.TestCase):
 
   def test_collection_types(self):
     # lists
-    self.assertEqual({ 1 : 1 }, itself(list([ 1 ])))
-    self.assertEqual({ 1 : 1, 2 : 2 }, itself(list([ 1, 2 ])))
+    self.assertEqual({ 1 : 1 }, itself([ 1 ]))
+    self.assertEqual({ 1 : 1, 2 : 2 }, itself([ 1, 2 ]))
 
     # tuples
     self.assertEqual({ 3 : 3 }, itself( (3, ) ))
     self.assertEqual({ 1 : 1, 2 : 2 }, itself( (1, 2) ))
 
     # sets
-    self.assertEqual({ 3 : 3 }, itself(set([ 3 ])))
-    self.assertEqual({ 1 : 1, 2 : 2 }, itself(set([ 1, 2 ])))
+    self.assertEqual({ 3 : 3 }, itself({ 3 }))
+    self.assertEqual({ 1 : 1, 2 : 2 }, itself({ 1, 2 }))
 
 
   def test_wrapper(self):

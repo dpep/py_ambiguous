@@ -2,7 +2,6 @@ import inspect
 
 from .decorator import decorator
 
-
 __all__ = [ 'thing_or_things' ]
 
 
@@ -16,7 +15,7 @@ def thing_or_things(fn, arg_name=None):
 
     if arg_name not in spec.args:
       raise ValueError(
-        'arg_name not in function signature: %s' % arg_name
+        f'arg_name not in function signature: {arg_name}'
       )
   else:
     # no args given, determine defaults
@@ -48,7 +47,7 @@ def thing_or_things(fn, arg_name=None):
     try:
       bound = sig.bind(*args, **kwargs)
     except TypeError as e:
-      raise TypeError('%s(): %s' % (fn.__name__, e)) from None
+      raise TypeError(f'{fn.__name__}(): {e}') from None
     bound.apply_defaults()
 
     thing_or_things = bound.arguments[arg_name]
@@ -64,7 +63,7 @@ def thing_or_things(fn, arg_name=None):
 
     # check return type
     if not isinstance(res, dict):
-      raise TypeError('expected %s, found %s' % (dict, type(res)))
+      raise TypeError(f'expected {dict}, found {type(res)}')
 
     thing_set = set(things)
     key_set = set(res.keys())
@@ -72,12 +71,12 @@ def thing_or_things(fn, arg_name=None):
     # ensure all things are mapped
     missing = thing_set - key_set
     if missing:
-      raise KeyError('missing things: %s' % list(missing))
+      raise KeyError(f'missing things: {list(missing)}')
 
     # ensure there's no extra things
     extra = key_set - thing_set
     if extra:
-      raise KeyError('extra things: %s' % list(extra))
+      raise KeyError(f'extra things: {list(extra)}')
 
     # unpack as needed
     if single_thing:
