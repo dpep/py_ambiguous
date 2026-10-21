@@ -18,8 +18,8 @@ from ambiguous import decorator
 
 @decorator
 def power(fn, exponent=2):
-  '''take function results and raise to an exponent'''
-  return lambda x: fn(x) ** exponent
+    """raise the wrapped function's result to an exponent"""
+    return lambda x: fn(x) ** exponent
 
 
 @power
@@ -43,21 +43,21 @@ from ambiguous import thing_or_things
 
 @thing_or_things
 def itself(args):
-  return { x : x for x in args }
+    return {x: x for x in args}
 
 itself(1)
 > 1
 itself([1, 2])
-> { 1 : 1, 2 : 2 }
+> {1: 1, 2: 2}
 
 
 # specify which argument
 @thing_or_things('args')
 def prefix(prefix, args):
-  return { x : "%s_%s" % (prefix, x) for x in args }
+    return {x: f"{prefix}_{x}" for x in args}
 
 prefix('abc', [1, 2])
-> { 1 : 'abc_1', 2 : 'abc_2' }
+> {1: 'abc_1', 2: 'abc_2'}
 ```
 
 
@@ -67,7 +67,7 @@ import ambiguous
 
 @ambiguous
 def foo():
-  return 'foo'
+    return 'foo'
 
 # the usual
 foo()
@@ -83,16 +83,27 @@ foo + 'abc'
 # works on classes too
 @ambiguous
 class Greeter:
-  def __init__(self, name):
-    self.name = name
+    def __init__(self, name):
+        self.name = name
 
-  def hello(self, greeting='hello'):
-    return '%s %s' % (greeting, self.name)
+    def hello(self, greeting='hello'):
+        return f'{greeting} {self.name}'
 
 Greeter('bob').hello
 > 'hello bob'
 Greeter('bob').hello('hi')
 > 'hi bob'
+
+
+# or on individual methods, stacked above @classmethod / @staticmethod
+class Config:
+    @ambiguous
+    @classmethod
+    def name(cls):
+        return cls.__name__
+
+Config.name
+> 'Config'
 ```
 
 ----
