@@ -1,3 +1,4 @@
+import operator
 from functools import partial
 from types import BuiltinFunctionType, FunctionType
 
@@ -26,12 +27,33 @@ class AmbiguousFunction:
 
 
 def _delegate(op):
+    # operators go through the operator module rather than the result's own
+    # dunder, so Python's fallbacks still apply: __bool__ -> __len__,
+    # NotImplemented -> reflected op, mixed types (1 == 1.0, "a" + proxy)
+    if op == "__bool__":
+        return lambda self: bool(self())
+
+    # 3-arg pow() has no operator equivalent
+    if op in _operators and op != "__pow__":
+        fn = _operators[op]
+        return lambda self, *args: fn(self(), *args)
+
+    # reflected, eg. __radd__ -> operator.__add__(other, result)
+    forward = "__" + op.removeprefix("__r")
+    if op.startswith("__r") and forward in _operators:
+        fn = _operators[forward]
+        return lambda self, other: fn(other, self())
+
     def exec_op(self, *args, **kwargs):
         # retrieve object upon which user is intending to operate, then make
         # the user-intended function call
         return getattr(self(), op)(*args, **kwargs)
 
     return exec_op
+
+
+# vars(), not getattr(): the module's own __eq__, __hash__, etc. aren't operators
+_operators = vars(operator)
 
 
 # delegate all operators and special functions, eg. __eq__, __str__
