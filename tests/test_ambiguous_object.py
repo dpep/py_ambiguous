@@ -95,11 +95,19 @@ class TestAmbiguousObject(unittest.TestCase):
       def who(cls):
         return cls.__name__
 
-    class B(A): pass
+    class C:
+      @ambiguous
+      @classmethod
+      def who(cls):
+        return cls.__name__
 
-    self.assertEqual('B', B.who)
-    self.assertEqual('B', B.who())
-    self.assertEqual('B', B().who())
+    class B(A): pass
+    class D(C): pass
+
+    for Sub in (B, D):
+      self.assertEqual(Sub.__name__, Sub.who)
+      self.assertEqual(Sub.__name__, Sub.who())
+      self.assertEqual(Sub.__name__, Sub().who())
 
 
   def test_class_attribute(self):
