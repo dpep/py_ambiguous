@@ -186,16 +186,19 @@ class TestThingOrThing(unittest.TestCase):
         self.assertEqual([], called)
 
     def test_obj_context(self):
+        # record self / cls in a list rather than assert, which -O strips
+        seen = []
+
         class Foo:
             @thing_or_things("args")
             def inst_it(self, args):
-                assert isinstance(self, Foo)
+                seen.append(self)
                 return {x: x for x in args}
 
             @classmethod
             @thing_or_things("args")
             def cls_it(cls, args):
-                assert cls == Foo
+                seen.append(cls)
                 return {x: x for x in args}
 
             @staticmethod
@@ -204,12 +207,16 @@ class TestThingOrThing(unittest.TestCase):
                 return {x: x for x in args}
 
         # instance method
-        self.assertEqual(3, Foo().inst_it(3))
-        self.assertEqual({3: 3}, Foo().inst_it([3]))
+        foo = Foo()
+        self.assertEqual(3, foo.inst_it(3))
+        self.assertEqual({3: 3}, foo.inst_it([3]))
+        self.assertEqual([foo, foo], seen)
+        seen.clear()
 
         # cls method
         self.assertEqual(3, Foo.cls_it(3))
         self.assertEqual({3: 3}, Foo.cls_it([3]))
+        self.assertEqual([Foo, Foo], seen)
 
         # static method
         self.assertEqual(3, Foo.static_it(3))
@@ -217,7 +224,6 @@ class TestThingOrThing(unittest.TestCase):
 
     def test_types(self):
         self.assertEqual("a", itself("a"))
-        self.assertEqual("abc", itself("abc"))
         self.assertEqual("abc", itself("abc"))
         self.assertEqual({"a": "a", "b": "b"}, itself(["a", "b"]))
         self.assertEqual(1, itself(1))

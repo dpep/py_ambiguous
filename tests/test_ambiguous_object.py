@@ -47,7 +47,7 @@ class TestAmbiguousObject(unittest.TestCase):
             def __str__(self):
                 return f"Foo({self.name})"
 
-        self.do(Foo)
+        self.assert_methods(Foo)
 
     def test_methods(self):
         # no class decorator needed: @ambiguous works on methods directly
@@ -72,7 +72,7 @@ class TestAmbiguousObject(unittest.TestCase):
             def __str__(self):
                 return f"Foo({self.name})"
 
-        self.do(Foo)
+        self.assert_methods(Foo)
 
     def test_falsy_instance(self):
         class Empty:
@@ -169,10 +169,10 @@ class TestAmbiguousObject(unittest.TestCase):
         # the proxy itself, not the method-descriptor path for builtins
         self.assertEqual("(*args, **kwargs)", str(inspect.signature(foo)))
 
-    def do(self, Foo):
-        self.assertTrue(isinstance(type, type(Foo)))
+    def assert_methods(self, Foo):
+        self.assertIsInstance(Foo, type)
         self.assertEqual("Foo", Foo.__name__)
-        self.assertTrue(isinstance(Foo.foo, FunctionType))
+        self.assertIsInstance(Foo.foo, FunctionType)
 
         with self.assertRaises(TypeError):
             # fails since method is unbound
