@@ -21,6 +21,11 @@ class TestAmbiguousObject(unittest.TestCase):
     self.assertEqual('foo', foo())
 
 
+  def test_dir(self):
+    public = [ x for x in dir(ambiguous) if not x.startswith('__') ]
+    self.assertEqual(sorted(ambiguous.__all__), public)
+
+
   def test_basic(self):
     @ambiguous
     class Foo(object):

@@ -16,15 +16,20 @@ __all__ = [
 import sys
 from types import ModuleType
 
-from .ambiguous import ambiguous, ambiguous_method, ambiguous_classmethod
+from .ambiguous import (
+  ambiguous,
+  ambiguous_method as method,
+  ambiguous_classmethod as classmethod,
+)
 from .decorator import decorator
 from .thing_or_things import thing_or_things
 
-
-# define aliases
-method = ambiguous_method
-classmethod = ambiguous_classmethod
 staticmethod = ambiguous
+
+
+def __dir__():
+  # keep internals (sys, submodules, ...) out of dir() and tab completion
+  return __all__ + [ x for x in globals() if x.startswith('__') ]
 
 
 class _CallableModule(ModuleType):
