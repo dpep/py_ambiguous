@@ -4,11 +4,7 @@ from types import BuiltinFunctionType, FunctionType
 from .ops import ops
 
 
-__all__ = [
-  'ambiguous',
-  'ambiguous_method',
-  'ambiguous_classmethod',
-]
+__all__ = [ 'ambiguous' ]
 
 
 class AmbiguousFunction:
@@ -16,6 +12,16 @@ class AmbiguousFunction:
     # the wrapped partial is read out-of-band because __getattribute__ is
     # itself delegated (below), so plain `self._wrapper` would recurse
     return object.__getattribute__(self, '_wrapper')(*args, **kwargs)
+
+  def __get__(self, obj, objtype=None):
+    # bind like a plain function, so @ambiguous works on methods
+    wrapper = object.__getattribute__(self, '_wrapper')
+    if obj is None:
+      return wrapper.func
+
+    return ambiguous_function(
+      wrapper.func, obj, *wrapper.args, **wrapper.keywords
+    )
 
 
 def _delegate(op):
@@ -40,18 +46,6 @@ def ambiguous_function(func, *args, **kwargs):
   return obj
 
 
-class _AmbiguousMethod:
-  def __init__(self, func):
-    self.func = func
-
-  def __get__(self, obj, objtype=None):
-    if obj is None:
-      return self.func
-
-    # bind obj (aka self) as the first arg
-    return ambiguous_function(self.func, obj)
-
-
 class _AmbiguousDescriptor:
   # wraps a classmethod / staticmethod, binding at lookup so that
   # subclasses get their own cls
@@ -62,14 +56,6 @@ class _AmbiguousDescriptor:
     return ambiguous_function(self.desc.__get__(obj, objtype))
 
 
-def ambiguous_method(func):
-  return _AmbiguousMethod(func)
-
-
-def ambiguous_classmethod(func):
-  return _AmbiguousDescriptor(classmethod(func))
-
-
 def ambiguous_class(cls):
   # only the class's own attrs, so inherited methods are left alone
   for name, attr in list(vars(cls).items()):
@@ -77,10 +63,8 @@ def ambiguous_class(cls):
     if name.startswith('__'):
       continue
 
-    if isinstance(attr, FunctionType):
-      setattr(cls, name, _AmbiguousMethod(attr))
-    elif isinstance(attr, (classmethod, staticmethod)):
-      setattr(cls, name, _AmbiguousDescriptor(attr))
+    if isinstance(attr, (FunctionType, classmethod, staticmethod)):
+      setattr(cls, name, ambiguous(attr))
 
   return cls
 

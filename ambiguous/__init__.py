@@ -4,10 +4,6 @@ __version__ = '0.5.1'
 
 __all__ = [
   'ambiguous',
-  'method',
-  'classmethod',
-  'staticmethod',
-
   'decorator',
   'thing_or_things',
 ]
@@ -16,15 +12,9 @@ __all__ = [
 import sys
 from types import ModuleType
 
-from .ambiguous import (
-  ambiguous,
-  ambiguous_method as method,
-  ambiguous_classmethod as classmethod,
-)
+from .ambiguous import ambiguous
 from .decorator import decorator
 from .thing_or_things import thing_or_things
-
-staticmethod = ambiguous
 
 
 def __dir__():
