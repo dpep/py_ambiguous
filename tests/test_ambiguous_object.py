@@ -1,3 +1,8 @@
+import abc
+import dataclasses
+import inspect
+import pydoc
+import time
 import unittest
 from types import FunctionType, ModuleType
 
@@ -105,6 +110,64 @@ class TestAmbiguousObject(unittest.TestCase):
             foo = name
 
         self.assertEqual("Foo", Foo().foo)
+
+    def test_class_attribute_no_rebinding(self):
+        # like plain Python, builtins and already-bound methods don't bind self
+        class Foo:
+            @ambiguous
+            def name(self):
+                return "foo"
+
+        class Bar:
+            now = ambiguous(time.time)
+            stolen = Foo().name
+
+        self.assertIsInstance(Bar().now, float)
+        self.assertEqual("foo", Bar().stolen)
+
+    def test_class_introspection(self):
+        # abc, dataclasses and pydoc read the class namespace directly, which
+        # must not call the method without self
+        class Base(abc.ABC):
+            @abc.abstractmethod
+            def kind(self): ...
+
+            @ambiguous
+            def name(self):
+                return "base"
+
+        class Impl(Base):
+            def kind(self):
+                return "impl"
+
+        @dataclasses.dataclass
+        class Data:
+            x: int = 1
+
+            @ambiguous
+            def name(self):
+                return "data"
+
+        @dataclasses.dataclass
+        @ambiguous
+        class Decorated:
+            x: int = 1
+
+            def name(self):
+                return "decorated"
+
+        self.assertEqual("base", Impl().name)
+        self.assertEqual("data", Data().name)
+        self.assertEqual("decorated", Decorated().name)
+        self.assertIn("name", pydoc.render_doc(Data))
+
+    def test_signature(self):
+        @ambiguous
+        def foo():
+            return "foo"
+
+        # the proxy itself, not the method-descriptor path for builtins
+        self.assertEqual("(*args, **kwargs)", str(inspect.signature(foo)))
 
     def do(self, Foo):
         self.assertTrue(isinstance(type, type(Foo)))
