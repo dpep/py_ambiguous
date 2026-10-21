@@ -3,7 +3,6 @@ from types import BuiltinFunctionType, FunctionType
 
 from .ops import ops
 
-
 __all__ = [ 'ambiguous' ]
 
 
@@ -80,6 +79,5 @@ def ambiguous(obj):
     return _AmbiguousDescriptor(obj)
 
   raise TypeError(
-    'expected a function, class, classmethod or staticmethod, got %s'
-    % type(obj).__name__
+    f'expected a function, class, classmethod or staticmethod, got {type(obj).__name__}'
   )

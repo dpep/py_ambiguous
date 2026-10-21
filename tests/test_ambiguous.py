@@ -3,7 +3,6 @@ import unittest
 import ambiguous
 
 
-
 class TestAmbiguous(unittest.TestCase):
   def test_basic(self):
     @ambiguous
@@ -24,7 +23,7 @@ class TestAmbiguous(unittest.TestCase):
   def test_str_function(self):
     @ambiguous
     def foo(val=''):
-      return 'foo%s' % val
+      return f'foo{val}'
 
     self.assertEqual('foo', foo)
     self.assertEqual('foo', foo())
@@ -141,7 +140,7 @@ class TestAmbiguous(unittest.TestCase):
       return self.count
 
     self.assertEqual(0, self.count)
-    inc  # this is inadvertently a no-op
+    inc  # noqa: B018 -- this is inadvertently a no-op
     self.assertEqual(0, self.count)
 
     inc()  # must call explicitly to trigger

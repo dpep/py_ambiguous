@@ -1,9 +1,7 @@
 import unittest
-
 from types import FunctionType, ModuleType
 
 import ambiguous
-
 
 
 class TestAmbiguousObject(unittest.TestCase):
@@ -28,49 +26,49 @@ class TestAmbiguousObject(unittest.TestCase):
 
   def test_basic(self):
     @ambiguous
-    class Foo(object):
+    class Foo:
       def __init__(self, name=''):
         self.name = name
 
       def foo(self, val=''):
-        return '%s.foo(%s)' % (self, val)
+        return f'{self}.foo({val})'
 
       @classmethod
       def bar(cls, val=''):
-        return '%s.bar(%s)' % (cls, val)
+        return f'{cls}.bar({val})'
 
       @staticmethod
       def baz(val=''):
-        return 'baz(%s)' % val
+        return f'baz({val})'
 
       def __str__(self):
-        return 'Foo(%s)' % self.name
+        return f'Foo({self.name})'
 
     self.do(Foo)
 
 
   def test_methods(self):
     # no class decorator needed: @ambiguous works on methods directly
-    class Foo(object):
+    class Foo:
       def __init__(self, name=''):
         self.name = name
 
       @ambiguous
       def foo(self, val=''):
-        return '%s.foo(%s)' % (self, val)
+        return f'{self}.foo({val})'
 
       @ambiguous
       @classmethod
       def bar(cls, val=''):
-        return '%s.bar(%s)' % (cls, val)
+        return f'{cls}.bar({val})'
 
       @ambiguous
       @staticmethod
       def baz(val=''):
-        return 'baz(%s)' % val
+        return f'baz({val})'
 
       def __str__(self):
-        return 'Foo(%s)' % self.name
+        return f'Foo({self.name})'
 
     self.do(Foo)
 
@@ -131,13 +129,13 @@ class TestAmbiguousObject(unittest.TestCase):
     self.assertEqual('Foo(abc).foo(xyz)', Foo('abc').foo('xyz'))
 
     # class methods
-    self.assertEqual('%s.bar()' % Foo, Foo.bar)
-    self.assertEqual('%s.bar()' % Foo, Foo.bar())
-    self.assertEqual('%s.bar()' % Foo, Foo().bar)
-    self.assertEqual('%s.bar()' % Foo, Foo().bar())
-    self.assertEqual('%s.bar()' % Foo, Foo('abc').bar)
-    self.assertEqual('%s.bar(abc)' % Foo, Foo.bar('abc'))
-    self.assertEqual('%s.bar(abc)' % Foo, Foo().bar('abc'))
+    self.assertEqual(f'{Foo}.bar()', Foo.bar)
+    self.assertEqual(f'{Foo}.bar()', Foo.bar())
+    self.assertEqual(f'{Foo}.bar()', Foo().bar)
+    self.assertEqual(f'{Foo}.bar()', Foo().bar())
+    self.assertEqual(f'{Foo}.bar()', Foo('abc').bar)
+    self.assertEqual(f'{Foo}.bar(abc)', Foo.bar('abc'))
+    self.assertEqual(f'{Foo}.bar(abc)', Foo().bar('abc'))
 
     # static methods
     self.assertEqual('baz()', Foo.baz)

@@ -1,6 +1,5 @@
-from functools import wraps, update_wrapper
+from functools import update_wrapper, wraps
 from inspect import isfunction
-
 
 __all__ = [ 'decorator' ]
 
@@ -30,7 +29,7 @@ def decorator(decorator_fn):
         if args and len(more_args) > 1:
           # arg order is ambiguous
           raise ValueError(
-            'expecting either callable or args, not both: %s' % str(more_args)
+            f'expecting either callable or args, not both: {more_args}'
           )
 
         # prepend callable
