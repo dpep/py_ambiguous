@@ -20,10 +20,12 @@ class AmbiguousFunction:
         wrapper = object.__getattribute__(self, "_wrapper")
 
         # builtins and already-bound methods don't bind self, as in plain Python
-        if isinstance(wrapper.func, FunctionType) and not (
-            wrapper.args or wrapper.keywords
-        ):
+        if isinstance(wrapper.func, FunctionType) and not wrapper.args:
             setattr(owner, name, _AmbiguousMethod(wrapper.func))
+
+
+# vars(), not getattr(): the module's own __eq__, __hash__, etc. aren't operators
+_operators = vars(operator)
 
 
 def _delegate(op):
@@ -44,16 +46,7 @@ def _delegate(op):
         fn = _operators[forward]
         return lambda self, other: fn(other, self())
 
-    def exec_op(self, *args, **kwargs):
-        # retrieve object upon which user is intending to operate, then make
-        # the user-intended function call
-        return getattr(self(), op)(*args, **kwargs)
-
-    return exec_op
-
-
-# vars(), not getattr(): the module's own __eq__, __hash__, etc. aren't operators
-_operators = vars(operator)
+    return lambda self, *args, **kwargs: getattr(self(), op)(*args, **kwargs)
 
 
 # delegate all operators and special functions, eg. __eq__, __str__
@@ -61,12 +54,12 @@ for op in ops:
     setattr(AmbiguousFunction, op, _delegate(op))
 
 
-def ambiguous_function(func, *args, **kwargs):
+def _ambiguous_function(func, *args):
     # call __new__ so as not to trigger the delegated __init__()
     obj = AmbiguousFunction.__new__(AmbiguousFunction)
 
     # set directly, since __setattr__ is delegated too
-    object.__setattr__(obj, "_wrapper", partial(func, *args, **kwargs))
+    object.__setattr__(obj, "_wrapper", partial(func, *args))
     return obj
 
 
@@ -79,7 +72,7 @@ class _AmbiguousMethod:
             return self.func
 
         # bind obj (aka self) as the first arg
-        return ambiguous_function(self.func, obj)
+        return _ambiguous_function(self.func, obj)
 
 
 class _AmbiguousDescriptor:
@@ -89,13 +82,14 @@ class _AmbiguousDescriptor:
         self.desc = desc
 
     def __get__(self, obj, objtype=None):
-        return ambiguous_function(self.desc.__get__(obj, objtype))
+        return _ambiguous_function(self.desc.__get__(obj, objtype))
 
 
-def ambiguous_class(cls):
+def _ambiguous_class(cls):
     # only the class's own attrs, so inherited methods are left alone
     for name, attr in list(vars(cls).items()):
-        # skip special methods because we're liable to get into trouble
+        # the interpreter calls dunders itself, so optional parentheses buy
+        # nothing there
         if name.startswith("__"):
             continue
 
@@ -108,11 +102,18 @@ def ambiguous_class(cls):
 
 
 def ambiguous(obj):
+    """
+    Make parentheses optional: `foo` acts like `foo()`, and `foo(x)` still works.
+
+    Takes a function, a classmethod / staticmethod, or a class (whose own
+    methods, except dunders, all become ambiguous). The result is computed
+    afresh on each use and is never cached.
+    """
     if isinstance(obj, (BuiltinFunctionType, FunctionType)):
-        return ambiguous_function(obj)
+        return _ambiguous_function(obj)
 
     if isinstance(obj, type):
-        return ambiguous_class(obj)
+        return _ambiguous_class(obj)
 
     if isinstance(obj, (classmethod, staticmethod)):
         return _AmbiguousDescriptor(obj)

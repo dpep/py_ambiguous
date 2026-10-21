@@ -6,13 +6,23 @@ __all__ = ["decorator"]
 
 def decorator(decorator_fn):
     """
-    Enable a decorator to accept args and kwargs.
+    Let a decorator be used bare or with arguments.
+
+    `decorator_fn` takes the target first, then its own options:
+
+        @decorator
+        def power(fn, exponent=2): ...
+
+        @power                  # power(f)
+        @power(3)               # power(f, 3)
+        @power(exponent=3)      # power(f, exponent=3)
+
+    The first positional arg being callable is what marks it as the target.
     """
 
     @wraps(decorator_fn)
     def wrapper(*args, **kwargs):
         if args and callable(args[0]):
-            # apply desired decorator
             decorated = decorator_fn(*args, **kwargs)
 
             # mask signature, unless the target was returned as-is, which
@@ -22,21 +32,19 @@ def decorator(decorator_fn):
 
             return decorated
 
-        # no function to decorate yet. wrap and accumulate args and kwargs
-        # until it arrives.
+        # no target yet: accumulate args and kwargs until it arrives
         @wraps(decorator_fn)
         def collect(*more_args, **more_kwargs):
             if more_args and callable(more_args[0]):
                 if args and len(more_args) > 1:
-                    # arg order is ambiguous
                     raise ValueError(
-                        f"expecting either callable or args, not both: {more_args}"
+                        f"{decorator_fn.__name__}(): ambiguous arg order, pass "
+                        "all args in one call and then the function alone"
                     )
 
-                # prepend callable
+                # the target goes first, ahead of the args collected so far
                 new_args = more_args + args
             else:
-                # append additional args
                 new_args = args + more_args
 
             return wrapper(*new_args, **{**kwargs, **more_kwargs})

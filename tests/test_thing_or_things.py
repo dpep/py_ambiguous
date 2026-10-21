@@ -118,7 +118,7 @@ class TestThingOrThing(unittest.TestCase):
 
         # ambiguous which arg is for things
 
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, r"@thing_or_things\('x'\)"):
 
             @thing_or_things
             def foo(x, y):
@@ -156,6 +156,13 @@ class TestThingOrThing(unittest.TestCase):
             def foo(*args):
                 pass
 
+    def test_unknown_arg_name(self):
+        with self.assertRaisesRegex(ValueError, "foo.. has no parameter 'thing'"):
+
+            @thing_or_things("thing")
+            def foo(things):
+                pass
+
     def test_arg_error(self):
         @thing_or_things("things")
         def foo(a, things, c=3):
@@ -186,16 +193,19 @@ class TestThingOrThing(unittest.TestCase):
         self.assertEqual([], called)
 
     def test_obj_context(self):
+        # record self / cls in a list rather than assert, which -O strips
+        seen = []
+
         class Foo:
             @thing_or_things("args")
             def inst_it(self, args):
-                assert isinstance(self, Foo)
+                seen.append(self)
                 return {x: x for x in args}
 
             @classmethod
             @thing_or_things("args")
             def cls_it(cls, args):
-                assert cls == Foo
+                seen.append(cls)
                 return {x: x for x in args}
 
             @staticmethod
@@ -204,12 +214,16 @@ class TestThingOrThing(unittest.TestCase):
                 return {x: x for x in args}
 
         # instance method
-        self.assertEqual(3, Foo().inst_it(3))
-        self.assertEqual({3: 3}, Foo().inst_it([3]))
+        foo = Foo()
+        self.assertEqual(3, foo.inst_it(3))
+        self.assertEqual({3: 3}, foo.inst_it([3]))
+        self.assertEqual([foo, foo], seen)
+        seen.clear()
 
         # cls method
         self.assertEqual(3, Foo.cls_it(3))
         self.assertEqual({3: 3}, Foo.cls_it([3]))
+        self.assertEqual([Foo, Foo], seen)
 
         # static method
         self.assertEqual(3, Foo.static_it(3))
@@ -217,7 +231,6 @@ class TestThingOrThing(unittest.TestCase):
 
     def test_types(self):
         self.assertEqual("a", itself("a"))
-        self.assertEqual("abc", itself("abc"))
         self.assertEqual("abc", itself("abc"))
         self.assertEqual({"a": "a", "b": "b"}, itself(["a", "b"]))
         self.assertEqual(1, itself(1))
@@ -250,7 +263,7 @@ class TestThingOrThing(unittest.TestCase):
     def test_return_type(self):
         self.assertEqual({}, thing_or_things(lambda things: {})([]))
 
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(TypeError, "must return a dict or None, got int"):
             thing_or_things(lambda things: 1)(1)
 
         with self.assertRaises(TypeError):
@@ -266,14 +279,14 @@ class TestThingOrThing(unittest.TestCase):
         with self.assertRaises(KeyError):
             thing_or_things(lambda things: {})(1)
 
-        with self.assertRaises(KeyError):
+        with self.assertRaisesRegex(KeyError, r"missing things: \[1\]"):
             thing_or_things(lambda things: {2: 2})(1)
 
         with self.assertRaises(KeyError):
             thing_or_things(lambda things: {2: 2})([1, 2])
 
     def test_extra_key(self):
-        with self.assertRaises(KeyError):
+        with self.assertRaisesRegex(KeyError, r"extra keys: \[2\]"):
             thing_or_things(lambda things: {1: 1, 2: 2})(1)
 
         with self.assertRaises(KeyError):

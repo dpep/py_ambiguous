@@ -1,3 +1,11 @@
+"""
+flexibility when you need it
+
+- ambiguous: make parentheses optional on a function, method or class's methods
+- decorator: let a decorator be used with or without arguments
+- thing_or_things: let a function take one thing or a collection of them
+"""
+
 __author__ = "dpepper"
 __version__ = "0.5.1"
 

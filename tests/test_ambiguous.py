@@ -38,8 +38,8 @@ class TestAmbiguous(unittest.TestCase):
         self.assertEqual("f", foo[0])
         self.assertEqual("oo", foo[1:])
 
-        self.assertTrue(isinstance(foo, str))
-        self.assertTrue(issubclass(foo.__class__, str))
+        self.assertIsInstance(foo, str)
+        self.assertIs(str, foo.__class__)
 
         self.assertEqual(str.__doc__, foo.__doc__)
 
@@ -60,7 +60,7 @@ class TestAmbiguous(unittest.TestCase):
 
         self.assertEqual(3, len(bar))
 
-        self.assertTrue(isinstance(bar, list))
+        self.assertIsInstance(bar, list)
 
         # no exceptions here
         bar[0] = 123
@@ -87,12 +87,12 @@ class TestAmbiguous(unittest.TestCase):
         self.assertEqual({"a": 2, "b": 4}, baz(2))
 
         self.assertEqual(1, baz["a"])
-        self.assertTrue(("a", 1) in baz.items())
+        self.assertIn(("a", 1), baz.items())
         self.assertEqual(18, baz(9)["b"])
 
         self.assertEqual(2, len(baz))
 
-        self.assertTrue(isinstance(baz, dict))
+        self.assertIsInstance(baz, dict)
 
         # no exceptions here, and no persisted changes
         baz["a"] = 123
@@ -181,7 +181,7 @@ class TestAmbiguous(unittest.TestCase):
             def __init__(self, name):
                 self.name = name
 
-            def getName(self):
+            def get_name(self):
                 return self.name
 
             def __call__(self):
@@ -194,11 +194,11 @@ class TestAmbiguous(unittest.TestCase):
         def foo(name=""):
             return Foo(name)
 
-        self.assertTrue(isinstance(foo, Foo))
-        self.assertTrue(isinstance(foo(), Foo))
+        self.assertIsInstance(foo, Foo)
+        self.assertIsInstance(foo(), Foo)
         self.assertEqual(Foo, foo.__class__)
-        self.assertEqual("", foo.getName())
-        self.assertEqual("bob", foo("bob").getName())
+        self.assertEqual("", foo.get_name())
+        self.assertEqual("bob", foo("bob").get_name())
         self.assertEqual("__str__", str(foo))
         self.assertEqual("__call__", foo()())
 
