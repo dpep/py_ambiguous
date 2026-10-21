@@ -5,270 +5,261 @@ from ambiguous import thing_or_things
 
 @thing_or_things
 def itself(args):
-  return { x : x for x in args }
+    return {x: x for x in args}
 
 
 class TestThingOrThing(unittest.TestCase):
+    def test_basics(self):
+        self.assertEqual(3, itself(3))
 
-  def test_basics(self):
-    self.assertEqual(3, itself(3))
+        self.assertEqual({3: 3}, itself([3]))
+        self.assertEqual({1: 1, 2: 2}, itself([1, 2]))
 
-    self.assertEqual({ 3 : 3 }, itself([ 3 ]))
-    self.assertEqual({ 1 : 1, 2 : 2 }, itself([ 1, 2 ]))
+    def test_default_arg(self):
+        @thing_or_things
+        def multiply(args, factor=1):
+            return {x: x * factor for x in args}
 
+        self.assertEqual(1, multiply(1))
+        self.assertEqual(2, multiply(1, factor=2))
+        self.assertEqual({1: 1}, multiply([1]))
+        self.assertEqual({1: 2, 2: 4}, multiply([1, 2], factor=2))
 
-  def test_default_arg(self):
-    @thing_or_things
-    def multiply(args, factor=1):
-      return { x : x * factor for x in args }
+    def test_many_args(self):
+        @thing_or_things("things")
+        def math(factor, things, sub=1):
+            return {x: x * factor - sub for x in things}
 
-    self.assertEqual(1, multiply(1))
-    self.assertEqual(2, multiply(1, factor=2))
-    self.assertEqual({ 1 : 1 }, multiply([ 1 ]))
-    self.assertEqual({ 1 : 2, 2 : 4 }, multiply([ 1, 2 ], factor=2))
+        self.assertEqual(9, math(10, 1))
+        self.assertEqual(19, math(10, 2, 1))
 
+        self.assertEqual({1: 9, 2: 19}, math(10, [1, 2], 1))
 
-  def test_many_args(self):
-    @thing_or_things('things')
-    def math(factor, things, sub=1):
-      return { x : x * factor - sub for x in things }
+    def test_thing_by_keyword(self):
+        self.assertEqual(1, itself(args=1))
+        self.assertEqual({1: 1, 2: 2}, itself(args=[1, 2]))
 
-    self.assertEqual(9, math(10, 1))
-    self.assertEqual(19, math(10, 2, 1))
+    def test_thing_default(self):
+        @thing_or_things("things")
+        def defaulted(things=(1,)):
+            return {x: x for x in things}
 
-    self.assertEqual(
-      { 1 : 9, 2 : 19 },
-      math(10, [1, 2], 1)
-    )
+        self.assertEqual({1: 1}, defaulted())
+        self.assertEqual(2, defaulted(2))
 
+    def test_kwargs(self):
+        @thing_or_things
+        def keywords(things, **kwargs):
+            return {x: kwargs for x in things}
 
-  def test_thing_by_keyword(self):
-    self.assertEqual(1, itself(args=1))
-    self.assertEqual({ 1 : 1, 2 : 2 }, itself(args=[ 1, 2 ]))
+        self.assertEqual({}, keywords(1))
+        self.assertEqual({"a": 5}, keywords(1, a=5))
 
+    def test_varargs(self):
+        @thing_or_things("ids")
+        def foo(ids, *args):
+            return {x: [x] + list(args) for x in ids}
 
-  def test_thing_default(self):
-    @thing_or_things('things')
-    def defaulted(things=(1,)):
-      return { x : x for x in things }
+        self.assertEqual([1, "a", "b"], foo(1, "a", "b"))
 
-    self.assertEqual({ 1 : 1 }, defaulted())
-    self.assertEqual(2, defaulted(2))
+    def test_empty(self):
+        # this is fine
+        self.assertEqual({}, itself([]))
 
+        # but this doesn't make sense
+        with self.assertRaises(TypeError):
+            itself()
 
-  def test_kwargs(self):
-    @thing_or_things
-    def keywords(things, **kwargs):
-      return { x : kwargs for x in things }
+    def test_returns_none(self):
+        # allowed to return None instead of list
 
-    self.assertEqual({}, keywords(1))
-    self.assertEqual({'a' : 5}, keywords(1, a=5))
+        @thing_or_things
+        def nope(things):
+            return None
 
+        self.assertIsNone(nope(1))
+        self.assertIsNone(nope([1, 2, 3]))
 
-  def test_varargs(self):
-    @thing_or_things('ids')
-    def foo(ids, *args):
-      return { x : [x] + list(args) for x in ids }
+    def test_arg_name(self):
+        @thing_or_things("args")
+        def prefix(prefix, args):
+            return {x: f"{prefix}{x}" for x in args}
 
-    self.assertEqual([1, 'a', 'b'], foo(1, 'a', 'b'))
+        self.assertEqual("+1", prefix("+", 1))
+        self.assertEqual({1: "+1"}, prefix("+", [1]))
+        self.assertEqual({1: "+1", 2: "+2"}, prefix("+", [1, 2]))
 
+    def test_arg_name_error(self):
+        # use case makes no sense
+        with self.assertRaises(TypeError):
 
-  def test_empty(self):
-    # this is fine
-    self.assertEqual({}, itself([]))
+            @thing_or_things
+            def foo():
+                pass
 
-    # but this doesn't make sense
-    with self.assertRaises(TypeError):
-      itself()
+        # ambiguous which arg is for things
 
+        with self.assertRaises(ValueError):
 
-  def test_returns_none(self):
-    # allowed to return None instead of list
+            @thing_or_things
+            def foo(x, y):
+                pass
 
-    @thing_or_things
-    def nope(things):
-      return None
+        with self.assertRaises(ValueError):
 
-    self.assertIsNone(nope(1))
-    self.assertIsNone(nope([ 1, 2, 3 ]))
+            @thing_or_things
+            def foo(a, b, c=3):
+                pass
 
+        with self.assertRaises(ValueError):
 
-  def test_arg_name(self):
-    @thing_or_things('args')
-    def prefix(prefix, args):
-      return { x : f"{prefix}{x}" for x in args }
+            @thing_or_things
+            def foo(a=1, b=2, c=3):
+                pass
 
-    self.assertEqual('+1', prefix('+', 1))
-    self.assertEqual({ 1 : '+1' }, prefix('+', [ 1 ]))
-    self.assertEqual({ 1 : '+1', 2: '+2' }, prefix('+', [ 1, 2 ]))
+        # varargs are generally avoided
 
+        with self.assertRaises(NotImplementedError):
 
-  def test_arg_name_error(self):
-    # use case makes no sense
-    with self.assertRaises(TypeError):
-      @thing_or_things
-      def foo(): pass
+            @thing_or_things
+            def foo(*args):
+                pass
 
-    # ambiguous which arg is for things
+        with self.assertRaises(NotImplementedError):
 
-    with self.assertRaises(ValueError):
-      @thing_or_things
-      def foo(x, y): pass
+            @thing_or_things
+            def foo(x, *args):
+                pass
 
-    with self.assertRaises(ValueError):
-      @thing_or_things
-      def foo(a, b, c=3): pass
+        with self.assertRaises(NotImplementedError):
 
-    with self.assertRaises(ValueError):
-      @thing_or_things
-      def foo(a=1, b=2, c=3): pass
+            @thing_or_things("args")
+            def foo(*args):
+                pass
 
-    # varargs are generally avoided
+    def test_arg_error(self):
+        @thing_or_things("things")
+        def foo(a, things, c=3):
+            return {thing: (a, thing, c) for thing in things}
 
-    with self.assertRaises(NotImplementedError):
-      @thing_or_things
-      def foo(*args): pass
+        # too few args
+        with self.assertRaises(TypeError):
+            foo()
 
-    with self.assertRaises(NotImplementedError):
-      @thing_or_things
-      def foo(x, *args): pass
+        with self.assertRaises(TypeError):
+            foo(1)
 
-    with self.assertRaises(NotImplementedError):
-      @thing_or_things('args')
-      def foo(*args): pass
+        # too many args
+        with self.assertRaises(TypeError):
+            foo(1, 2, 3, 4)
 
+        # bad calls never reach the function
+        called = []
 
-  def test_arg_error(self):
-    @thing_or_things('things')
-    def foo(a, things, c=3):
-      return { thing : (a, thing, c) for thing in things }
+        @thing_or_things
+        def spy(things):
+            called.append(things)
+            return {x: x for x in things}
 
-    # too few args
-    with self.assertRaises(TypeError):
-      foo()
+        with self.assertRaises(TypeError):
+            spy()
 
-    with self.assertRaises(TypeError):
-      foo(1)
+        self.assertEqual([], called)
 
-    # too many args
-    with self.assertRaises(TypeError):
-      foo(1, 2, 3, 4)
+    def test_obj_context(self):
+        class Foo:
+            @thing_or_things("args")
+            def inst_it(self, args):
+                assert isinstance(self, Foo)
+                return {x: x for x in args}
 
-    # bad calls never reach the function
-    called = []
+            @classmethod
+            @thing_or_things("args")
+            def cls_it(cls, args):
+                assert cls == Foo
+                return {x: x for x in args}
 
-    @thing_or_things
-    def spy(things):
-      called.append(things)
-      return { x : x for x in things }
+            @staticmethod
+            @thing_or_things
+            def static_it(args):
+                return {x: x for x in args}
 
-    with self.assertRaises(TypeError):
-      spy()
+        # instance method
+        self.assertEqual(3, Foo().inst_it(3))
+        self.assertEqual({3: 3}, Foo().inst_it([3]))
 
-    self.assertEqual([], called)
+        # cls method
+        self.assertEqual(3, Foo.cls_it(3))
+        self.assertEqual({3: 3}, Foo.cls_it([3]))
 
+        # static method
+        self.assertEqual(3, Foo.static_it(3))
+        self.assertEqual({3: 3}, Foo.static_it([3]))
 
-  def test_obj_context(self):
-    class Foo:
-      @thing_or_things('args')
-      def inst_it(self, args):
-        assert isinstance(self, Foo)
-        return { x : x for x in args }
+    def test_types(self):
+        self.assertEqual("a", itself("a"))
+        self.assertEqual("abc", itself("abc"))
+        self.assertEqual("abc", itself("abc"))
+        self.assertEqual({"a": "a", "b": "b"}, itself(["a", "b"]))
+        self.assertEqual(1, itself(1))
+        self.assertEqual(1.0, itself(1.0))
 
-      @classmethod
-      @thing_or_things('args')
-      def cls_it(cls, args):
-        assert cls == Foo
-        return { x : x for x in args }
+    def test_collection_types(self):
+        # lists
+        self.assertEqual({1: 1}, itself([1]))
+        self.assertEqual({1: 1, 2: 2}, itself([1, 2]))
 
-      @staticmethod
-      @thing_or_things
-      def static_it(args):
-        return { x : x for x in args }
+        # tuples
+        self.assertEqual({3: 3}, itself((3,)))
+        self.assertEqual({1: 1, 2: 2}, itself((1, 2)))
 
+        # sets
+        self.assertEqual({3: 3}, itself({3}))
+        self.assertEqual({1: 1, 2: 2}, itself({1, 2}))
 
-    # instance method
-    self.assertEqual(3, Foo().inst_it(3))
-    self.assertEqual({ 3 : 3 }, Foo().inst_it([ 3 ]))
+    def test_wrapper(self):
+        # ensure function name was preserved
+        self.assertEqual("itself", itself.__name__)
 
-    # cls method
-    self.assertEqual(3, Foo.cls_it(3))
-    self.assertEqual({ 3 : 3 }, Foo.cls_it([ 3 ]))
+        class Foo:
+            @thing_or_things
+            def foo(self):
+                pass
 
-    # static method
-    self.assertEqual(3, Foo.static_it(3))
-    self.assertEqual({ 3 : 3 }, Foo.static_it([ 3 ]))
+        self.assertEqual("foo", Foo.foo.__name__)
 
+    def test_return_type(self):
+        self.assertEqual({}, thing_or_things(lambda things: {})([]))
 
-  def test_types(self):
-    self.assertEqual('a', itself('a'))
-    self.assertEqual('abc', itself('abc'))
-    self.assertEqual('abc', itself('abc'))
-    self.assertEqual({ 'a' : 'a', 'b' : 'b' }, itself(['a', 'b']))
-    self.assertEqual(1, itself(1))
-    self.assertEqual(1.0, itself(1.0))
+        with self.assertRaises(TypeError):
+            thing_or_things(lambda things: 1)(1)
 
+        with self.assertRaises(TypeError):
+            thing_or_things(lambda things: True)(1)
 
-  def test_collection_types(self):
-    # lists
-    self.assertEqual({ 1 : 1 }, itself([ 1 ]))
-    self.assertEqual({ 1 : 1, 2 : 2 }, itself([ 1, 2 ]))
+        with self.assertRaises(TypeError):
+            thing_or_things(lambda things: [])([1, 2])
 
-    # tuples
-    self.assertEqual({ 3 : 3 }, itself( (3, ) ))
-    self.assertEqual({ 1 : 1, 2 : 2 }, itself( (1, 2) ))
+        with self.assertRaises(TypeError):
+            thing_or_things(lambda things: set())(1)
 
-    # sets
-    self.assertEqual({ 3 : 3 }, itself({ 3 }))
-    self.assertEqual({ 1 : 1, 2 : 2 }, itself({ 1, 2 }))
+    def test_missing_key(self):
+        with self.assertRaises(KeyError):
+            thing_or_things(lambda things: {})(1)
 
+        with self.assertRaises(KeyError):
+            thing_or_things(lambda things: {2: 2})(1)
 
-  def test_wrapper(self):
-    # ensure function name was preserved
-    self.assertEqual('itself', itself.__name__)
+        with self.assertRaises(KeyError):
+            thing_or_things(lambda things: {2: 2})([1, 2])
 
-    class Foo:
-      @thing_or_things
-      def foo(self): pass
+    def test_extra_key(self):
+        with self.assertRaises(KeyError):
+            thing_or_things(lambda things: {1: 1, 2: 2})(1)
 
-    self.assertEqual('foo', Foo.foo.__name__)
+        with self.assertRaises(KeyError):
+            thing_or_things(lambda things: {1: 1})([])
 
 
-  def test_return_type(self):
-    self.assertEqual({}, thing_or_things(lambda things: {})([]))
-
-    with self.assertRaises(TypeError):
-      thing_or_things(lambda things: 1)(1)
-
-    with self.assertRaises(TypeError):
-      thing_or_things(lambda things: True)(1)
-
-    with self.assertRaises(TypeError):
-      thing_or_things(lambda things: [])([1, 2])
-
-    with self.assertRaises(TypeError):
-      thing_or_things(lambda things: set())(1)
-
-
-  def test_missing_key(self):
-    with self.assertRaises(KeyError):
-      thing_or_things(lambda things: {})(1)
-
-    with self.assertRaises(KeyError):
-      thing_or_things(lambda things: { 2 : 2 })(1)
-
-    with self.assertRaises(KeyError):
-      thing_or_things(lambda things: { 2 : 2 })([1, 2])
-
-
-  def test_extra_key(self):
-    with self.assertRaises(KeyError):
-      thing_or_things(lambda things: { 1 : 1, 2 : 2 })(1)
-
-    with self.assertRaises(KeyError):
-      thing_or_things(lambda things: { 1 : 1 })([])
-
-
-
-if __name__ == '__main__':
-  unittest.main()
+if __name__ == "__main__":
+    unittest.main()
