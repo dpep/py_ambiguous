@@ -1,7 +1,7 @@
 Unreleased
 - `thing_or_things` supports keyword-only parameters as the thing
 - `@ambiguous` now works directly on methods; `ambiguous.method`, `ambiguous.classmethod` and `ambiguous.staticmethod` are removed. Replace `@ambiguous.method` with `@ambiguous`, and `@ambiguous.classmethod` / `@ambiguous.staticmethod` with `@ambiguous` stacked above `@classmethod` / `@staticmethod`
-- an ambiguous function assigned as a class attribute now binds `self` on instance access, like a plain function
+- an ambiguous function defined or assigned in a class body now binds `self` on instance access, like a plain function. In an Enum, decorate the class with `@ambiguous` instead of individual methods
 - `ambiguous()` now raises TypeError instead of NotImplementedError for unsupported types; update any `except NotImplementedError`
 - fix ambiguous methods on falsy instances, and classmethods called via a subclass of an @ambiguous class
 - fix `inspect.signature` raising "wrapper loop" when a @decorator returns its target unchanged

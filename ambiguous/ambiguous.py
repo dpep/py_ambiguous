@@ -12,13 +12,17 @@ class AmbiguousFunction:
         # itself delegated (below), so plain `self._wrapper` would recurse
         return object.__getattribute__(self, "_wrapper")(*args, **kwargs)
 
-    def __get__(self, obj, objtype=None):
-        # bind like a plain function, so @ambiguous works on methods
+    def __set_name__(self, owner, name):
+        # called for each value in a class body. Swap in a plain method
+        # descriptor: abc, dataclasses and pydoc read the class namespace, and
+        # a proxy there would answer them by calling the method without self
         wrapper = object.__getattribute__(self, "_wrapper")
-        if obj is None:
-            return wrapper.func
 
-        return ambiguous_function(wrapper.func, obj, *wrapper.args, **wrapper.keywords)
+        # builtins and already-bound methods don't bind self, as in plain Python
+        if isinstance(wrapper.func, FunctionType) and not (
+            wrapper.args or wrapper.keywords
+        ):
+            setattr(owner, name, _AmbiguousMethod(wrapper.func))
 
 
 def _delegate(op):
@@ -44,6 +48,18 @@ def ambiguous_function(func, *args, **kwargs):
     return obj
 
 
+class _AmbiguousMethod:
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self.func
+
+        # bind obj (aka self) as the first arg
+        return ambiguous_function(self.func, obj)
+
+
 class _AmbiguousDescriptor:
     # wraps a classmethod / staticmethod, binding at lookup so that
     # subclasses get their own cls
@@ -61,8 +77,10 @@ def ambiguous_class(cls):
         if name.startswith("__"):
             continue
 
-        if isinstance(attr, (FunctionType, classmethod, staticmethod)):
-            setattr(cls, name, ambiguous(attr))
+        if isinstance(attr, FunctionType):
+            setattr(cls, name, _AmbiguousMethod(attr))
+        elif isinstance(attr, (classmethod, staticmethod)):
+            setattr(cls, name, _AmbiguousDescriptor(attr))
 
     return cls
 
