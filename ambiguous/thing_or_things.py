@@ -64,11 +64,10 @@ def thing_or_things(fn, arg_name=None):
             raise TypeError(f"{fn.__name__}(): {e}") from None
         bound.apply_defaults()
 
-        thing_or_things = bound.arguments[arg_name]
-        single_thing = not isinstance(thing_or_things, (list, set, tuple))
-        things = [thing_or_things] if single_thing else list(thing_or_things)
+        arg = bound.arguments[arg_name]
+        single_thing = not isinstance(arg, (list, set, tuple))
+        things = [arg] if single_thing else list(arg)
 
-        # replace thing_or_things arg and make function call
         bound.arguments[arg_name] = things
         res = fn(*bound.args, **bound.kwargs)
 
@@ -81,7 +80,7 @@ def thing_or_things(fn, arg_name=None):
             )
 
         thing_set = set(things)
-        key_set = set(res.keys())
+        key_set = set(res)
 
         missing = thing_set - key_set
         if missing:
@@ -91,7 +90,6 @@ def thing_or_things(fn, arg_name=None):
         if extra:
             raise KeyError(f"{fn.__name__}() result has extra keys: {list(extra)}")
 
-        # unpack as needed
         if single_thing:
             res = res[things[0]]
 
