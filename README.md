@@ -78,6 +78,21 @@ foo
 > 'foo'
 foo + 'abc'
 > 'fooabc'
+
+
+# works on classes too
+@ambiguous
+class Greeter:
+  def __init__(self, name):
+    self.name = name
+
+  def hello(self, greeting='hello'):
+    return '%s %s' % (greeting, self.name)
+
+Greeter('bob').hello
+> 'hello bob'
+Greeter('bob').hello('hi')
+> 'hi bob'
 ```
 
 ----
