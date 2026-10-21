@@ -4,178 +4,172 @@ import ambiguous
 
 
 class TestAmbiguous(unittest.TestCase):
-  def test_basic(self):
-    @ambiguous
-    def foo():
-      return True
+    def test_basic(self):
+        @ambiguous
+        def foo():
+            return True
 
-    self.assertTrue(foo())
-    self.assertTrue(foo)
+        self.assertTrue(foo())
+        self.assertTrue(foo)
 
-    @ambiguous
-    def bar():
-      return 'bar'
+        @ambiguous
+        def bar():
+            return "bar"
 
-    self.assertEqual('bar', bar())
-    self.assertEqual('bar', bar)
+        self.assertEqual("bar", bar())
+        self.assertEqual("bar", bar)
 
+    def test_str_function(self):
+        @ambiguous
+        def foo(val=""):
+            return f"foo{val}"
 
-  def test_str_function(self):
-    @ambiguous
-    def foo(val=''):
-      return f'foo{val}'
+        self.assertEqual("foo", foo)
+        self.assertEqual("foo", foo())
 
-    self.assertEqual('foo', foo)
-    self.assertEqual('foo', foo())
+        self.assertEqual("fooboo", foo("boo"))
+        self.assertEqual("fooboo", foo + "boo")
 
-    self.assertEqual('fooboo', foo('boo'))
-    self.assertEqual('fooboo', foo + 'boo')
+        self.assertEqual(3, len(foo))
+        self.assertEqual(3, len(foo()))
 
-    self.assertEqual(3, len(foo))
-    self.assertEqual(3, len(foo()))
+        self.assertEqual("FOO", foo.upper())
 
-    self.assertEqual('FOO', foo.upper())
+        self.assertEqual("f", foo[0])
+        self.assertEqual("oo", foo[1:])
 
-    self.assertEqual('f', foo[0])
-    self.assertEqual('oo', foo[1:])
+        self.assertTrue(isinstance(foo, str))
+        self.assertTrue(issubclass(foo.__class__, str))
 
-    self.assertTrue(isinstance(foo, str))
-    self.assertTrue(issubclass(foo.__class__, str))
+        self.assertEqual(str.__doc__, foo.__doc__)
 
-    self.assertEqual(str.__doc__, foo.__doc__)
+    def test_list_function(self):
+        @ambiguous
+        def bar(val=None):
+            return list(filter(None, [1, 2, 3] + [val]))
 
+        self.assertEqual([1, 2, 3], bar)
+        self.assertEqual([1, 2, 3], bar())
 
-  def test_list_function(self):
-    @ambiguous
-    def bar(val=None):
-      return list(filter(None, [ 1, 2, 3 ] + [ val ]))
+        self.assertEqual([1, 2, 3, 4], bar(4))
+        self.assertEqual([1, 2, 3, 4], bar + [4])
 
-    self.assertEqual([ 1, 2, 3 ], bar)
-    self.assertEqual([ 1, 2, 3 ], bar())
+        self.assertEqual(1, bar[0])
+        self.assertEqual([2, 3], bar[1:])
+        self.assertEqual([2, 3, 4], bar(4)[1:])
 
-    self.assertEqual([ 1, 2, 3, 4 ], bar(4))
-    self.assertEqual([ 1, 2, 3, 4 ], bar + [ 4 ])
+        self.assertEqual(3, len(bar))
 
-    self.assertEqual(1, bar[0])
-    self.assertEqual([ 2, 3 ], bar[1:])
-    self.assertEqual([ 2, 3, 4 ], bar(4)[1:])
+        self.assertTrue(isinstance(bar, list))
 
-    self.assertEqual(3, len(bar))
+        # no exceptions here
+        bar[0] = 123
+        del bar[0]
 
-    self.assertTrue(isinstance(bar, list))
+        # although the update doesn't stick
+        self.assertEqual(1, bar[0])
 
-    # no exceptions here
-    bar[0] = 123
-    del bar[0]
+        # unless you save the returned object
+        res = bar()
+        res[0] = 123
+        self.assertEqual(123, res[0])
 
-    # although the update doesn't stick
-    self.assertEqual(1, bar[0])
+    def test_dict_function(self):
+        data = {"a": 1, "b": 2}
 
-    # unless you save the returned object
-    res = bar()
-    res[0] = 123
-    self.assertEqual(123, res[0])
+        @ambiguous
+        def baz(factor=1):
+            return {k: v * factor for k, v in data.items()}
 
+        self.assertEqual(data, baz)
+        self.assertEqual(data, baz())
 
-  def test_dict_function(self):
-    data = { 'a' : 1, 'b' : 2 }
+        self.assertEqual({"a": 2, "b": 4}, baz(2))
 
-    @ambiguous
-    def baz(factor=1):
-      return { k : v * factor for k, v in data.items() }
+        self.assertEqual(1, baz["a"])
+        self.assertTrue(("a", 1) in baz.items())
+        self.assertEqual(18, baz(9)["b"])
 
-    self.assertEqual(data, baz)
-    self.assertEqual(data, baz())
+        self.assertEqual(2, len(baz))
 
-    self.assertEqual({ 'a' : 2, 'b' : 4 }, baz(2))
+        self.assertTrue(isinstance(baz, dict))
 
-    self.assertEqual(1, baz['a'])
-    self.assertTrue(('a', 1) in baz.items())
-    self.assertEqual(18, baz(9)['b'])
+        # no exceptions here, and no persisted changes
+        baz["a"] = 123
+        self.assertEqual(1, baz["a"])
 
-    self.assertEqual(2, len(baz))
+        del baz["a"]
+        self.assertEqual(1, baz["a"])
 
-    self.assertTrue(isinstance(baz, dict))
+    def test_unsupported_type(self):
+        with self.assertRaises(TypeError):
+            ambiguous(123)
 
-    # no exceptions here, and no persisted changes
-    baz['a'] = 123
-    self.assertEqual(1, baz['a'])
+    def test_inplace_ops(self):
+        @ambiguous
+        def num():
+            return 10
 
-    del baz['a']
-    self.assertEqual(1, baz['a'])
+        @ambiguous
+        def letters():
+            return "ab"
 
+        # falls back to `x = x + y` rather than mutating the result
+        x = num
+        x += 1
+        self.assertEqual(11, x)
 
-  def test_unsupported_type(self):
-    with self.assertRaises(TypeError):
-      ambiguous(123)
+        s = letters
+        s += "c"
+        self.assertEqual("abc", s)
 
+    def test_counts(self):
+        # don't call functions more than intended
 
-  def test_inplace_ops(self):
-    @ambiguous
-    def num():
-      return 10
+        self.count = 0
 
-    @ambiguous
-    def letters():
-      return 'ab'
+        @ambiguous
+        def inc():
+            self.count += 1
+            return self.count
 
-    # falls back to `x = x + y` rather than mutating the result
-    x = num
-    x += 1
-    self.assertEqual(11, x)
+        self.assertEqual(0, self.count)
+        inc  # noqa: B018 -- this is inadvertently a no-op
+        self.assertEqual(0, self.count)
 
-    s = letters
-    s += 'c'
-    self.assertEqual('abc', s)
+        inc()  # must call explicitly to trigger
+        self.assertEqual(1, self.count)
 
+        res = 0 + inc  # or do something with the value
+        self.assertEqual(2, res)
+        self.assertEqual(2, self.count)
 
-  def test_counts(self):
-    # don't call functions more than intended
+    def test_obj_from_function(self):
+        class Foo:
+            def __init__(self, name):
+                self.name = name
 
-    self.count = 0
+            def getName(self):
+                return self.name
 
-    @ambiguous
-    def inc():
-      self.count += 1
-      return self.count
+            def __call__(self):
+                return "__call__"
 
-    self.assertEqual(0, self.count)
-    inc  # noqa: B018 -- this is inadvertently a no-op
-    self.assertEqual(0, self.count)
+            def __str__(self):
+                return "__str__"
 
-    inc()  # must call explicitly to trigger
-    self.assertEqual(1, self.count)
+        @ambiguous
+        def foo(name=""):
+            return Foo(name)
 
-    res = 0 + inc  # or do something with the value
-    self.assertEqual(2, res)
-    self.assertEqual(2, self.count)
-
-
-  def test_obj_from_function(self):
-    class Foo:
-      def __init__(self, name):
-        self.name = name
-      def getName(self):
-        return self.name
-      def __call__(self):
-        return '__call__'
-      def __str__(self):
-        return '__str__'
-
-    @ambiguous
-    def foo(name=''):
-      return Foo(name)
-
-
-    self.assertTrue(isinstance(foo, Foo))
-    self.assertTrue(isinstance(foo(), Foo))
-    self.assertEqual(Foo, foo.__class__)
-    self.assertEqual('', foo.getName())
-    self.assertEqual('bob', foo('bob').getName())
-    self.assertEqual('__str__', str(foo))
-    self.assertEqual('__call__', foo()())
+        self.assertTrue(isinstance(foo, Foo))
+        self.assertTrue(isinstance(foo(), Foo))
+        self.assertEqual(Foo, foo.__class__)
+        self.assertEqual("", foo.getName())
+        self.assertEqual("bob", foo("bob").getName())
+        self.assertEqual("__str__", str(foo))
+        self.assertEqual("__call__", foo()())
 
 
-
-if __name__ == '__main__':
-  unittest.main()
+if __name__ == "__main__":
+    unittest.main()

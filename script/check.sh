@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Full gate: tests and lint. Run before every commit.
+# Full gate: tests, lint, format. Run before every commit.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 bin=.venv/bin
@@ -7,3 +7,4 @@ bin=.venv/bin
 
 "$bin/python" -m unittest -q "$@"
 "$bin/ruff" check .
+"$bin/ruff" format --check .

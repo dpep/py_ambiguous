@@ -5,146 +5,139 @@ import ambiguous
 
 
 class TestAmbiguousObject(unittest.TestCase):
-  def test_module_is_callable(self):
-    # the module is made callable so it can be used directly as a
-    # decorator, eg. `import ambiguous; @ambiguous`
-    self.assertTrue(callable(ambiguous))
-    self.assertIsInstance(ambiguous, ModuleType)
+    def test_module_is_callable(self):
+        # the module is made callable so it can be used directly as a
+        # decorator, eg. `import ambiguous; @ambiguous`
+        self.assertTrue(callable(ambiguous))
+        self.assertIsInstance(ambiguous, ModuleType)
 
-    @ambiguous
-    def foo():
-      return 'foo'
+        @ambiguous
+        def foo():
+            return "foo"
 
-    self.assertEqual('foo', foo)
-    self.assertEqual('foo', foo())
+        self.assertEqual("foo", foo)
+        self.assertEqual("foo", foo())
 
+    def test_dir(self):
+        public = [x for x in dir(ambiguous) if not x.startswith("__")]
+        self.assertEqual(sorted(ambiguous.__all__), public)
 
-  def test_dir(self):
-    public = [ x for x in dir(ambiguous) if not x.startswith('__') ]
-    self.assertEqual(sorted(ambiguous.__all__), public)
+    def test_basic(self):
+        @ambiguous
+        class Foo:
+            def __init__(self, name=""):
+                self.name = name
 
+            def foo(self, val=""):
+                return f"{self}.foo({val})"
 
-  def test_basic(self):
-    @ambiguous
-    class Foo:
-      def __init__(self, name=''):
-        self.name = name
+            @classmethod
+            def bar(cls, val=""):
+                return f"{cls}.bar({val})"
 
-      def foo(self, val=''):
-        return f'{self}.foo({val})'
+            @staticmethod
+            def baz(val=""):
+                return f"baz({val})"
 
-      @classmethod
-      def bar(cls, val=''):
-        return f'{cls}.bar({val})'
+            def __str__(self):
+                return f"Foo({self.name})"
 
-      @staticmethod
-      def baz(val=''):
-        return f'baz({val})'
+        self.do(Foo)
 
-      def __str__(self):
-        return f'Foo({self.name})'
+    def test_methods(self):
+        # no class decorator needed: @ambiguous works on methods directly
+        class Foo:
+            def __init__(self, name=""):
+                self.name = name
 
-    self.do(Foo)
+            @ambiguous
+            def foo(self, val=""):
+                return f"{self}.foo({val})"
 
+            @ambiguous
+            @classmethod
+            def bar(cls, val=""):
+                return f"{cls}.bar({val})"
 
-  def test_methods(self):
-    # no class decorator needed: @ambiguous works on methods directly
-    class Foo:
-      def __init__(self, name=''):
-        self.name = name
+            @ambiguous
+            @staticmethod
+            def baz(val=""):
+                return f"baz({val})"
 
-      @ambiguous
-      def foo(self, val=''):
-        return f'{self}.foo({val})'
+            def __str__(self):
+                return f"Foo({self.name})"
 
-      @ambiguous
-      @classmethod
-      def bar(cls, val=''):
-        return f'{cls}.bar({val})'
+        self.do(Foo)
 
-      @ambiguous
-      @staticmethod
-      def baz(val=''):
-        return f'baz({val})'
+    def test_falsy_instance(self):
+        class Empty:
+            def __len__(self):
+                return 0
 
-      def __str__(self):
-        return f'Foo({self.name})'
+            @ambiguous
+            def name(self):
+                return "empty"
 
-    self.do(Foo)
+        self.assertEqual("empty", Empty().name)
+        self.assertEqual("empty", Empty().name())
 
+    def test_subclass_classmethod(self):
+        @ambiguous
+        class A:
+            @classmethod
+            def who(cls):
+                return cls.__name__
 
-  def test_falsy_instance(self):
-    class Empty:
-      def __len__(self):
-        return 0
+        class B(A):
+            pass
 
-      @ambiguous
-      def name(self):
-        return 'empty'
+        self.assertEqual("B", B.who)
+        self.assertEqual("B", B.who())
+        self.assertEqual("B", B().who())
 
-    self.assertEqual('empty', Empty().name)
-    self.assertEqual('empty', Empty().name())
+    def test_class_attribute(self):
+        @ambiguous
+        def name(obj):
+            return type(obj).__name__
 
+        # like a plain function, an ambiguous function binds self
+        class Foo:
+            foo = name
 
-  def test_subclass_classmethod(self):
-    @ambiguous
-    class A:
-      @classmethod
-      def who(cls):
-        return cls.__name__
+        self.assertEqual("Foo", Foo().foo)
 
-    class B(A): pass
+    def do(self, Foo):
+        self.assertTrue(isinstance(type, type(Foo)))
+        self.assertEqual("Foo", Foo.__name__)
+        self.assertTrue(isinstance(Foo.foo, FunctionType))
 
-    self.assertEqual('B', B.who)
-    self.assertEqual('B', B.who())
-    self.assertEqual('B', B().who())
+        with self.assertRaises(TypeError):
+            # fails since method is unbound
+            Foo.foo()
 
+        self.assertEqual("Foo()", str(Foo()))
 
-  def test_class_attribute(self):
-    @ambiguous
-    def name(obj):
-      return type(obj).__name__
+        self.assertEqual("Foo().foo()", Foo().foo)
+        self.assertEqual("Foo().foo()", Foo().foo())
+        self.assertEqual("Foo(abc).foo()", Foo("abc").foo)
+        self.assertEqual("Foo(abc).foo(xyz)", Foo("abc").foo("xyz"))
 
-    # like a plain function, an ambiguous function binds self
-    class Foo:
-      foo = name
+        # class methods
+        self.assertEqual(f"{Foo}.bar()", Foo.bar)
+        self.assertEqual(f"{Foo}.bar()", Foo.bar())
+        self.assertEqual(f"{Foo}.bar()", Foo().bar)
+        self.assertEqual(f"{Foo}.bar()", Foo().bar())
+        self.assertEqual(f"{Foo}.bar()", Foo("abc").bar)
+        self.assertEqual(f"{Foo}.bar(abc)", Foo.bar("abc"))
+        self.assertEqual(f"{Foo}.bar(abc)", Foo().bar("abc"))
 
-    self.assertEqual('Foo', Foo().foo)
-
-
-  def do(self, Foo):
-    self.assertTrue(isinstance(type, type(Foo)))
-    self.assertEqual('Foo', Foo.__name__)
-    self.assertTrue(isinstance(Foo.foo, FunctionType))
-
-    with self.assertRaises(TypeError):
-      # fails since method is unbound
-      Foo.foo()
-
-    self.assertEqual('Foo()', str(Foo()))
-
-    self.assertEqual('Foo().foo()', Foo().foo)
-    self.assertEqual('Foo().foo()', Foo().foo())
-    self.assertEqual('Foo(abc).foo()', Foo('abc').foo)
-    self.assertEqual('Foo(abc).foo(xyz)', Foo('abc').foo('xyz'))
-
-    # class methods
-    self.assertEqual(f'{Foo}.bar()', Foo.bar)
-    self.assertEqual(f'{Foo}.bar()', Foo.bar())
-    self.assertEqual(f'{Foo}.bar()', Foo().bar)
-    self.assertEqual(f'{Foo}.bar()', Foo().bar())
-    self.assertEqual(f'{Foo}.bar()', Foo('abc').bar)
-    self.assertEqual(f'{Foo}.bar(abc)', Foo.bar('abc'))
-    self.assertEqual(f'{Foo}.bar(abc)', Foo().bar('abc'))
-
-    # static methods
-    self.assertEqual('baz()', Foo.baz)
-    self.assertEqual('baz()', Foo.baz())
-    self.assertEqual('baz()', Foo().baz())
-    self.assertEqual('baz(abc)', Foo.baz('abc'))
-    self.assertEqual('baz(abc)', Foo().baz('abc'))
+        # static methods
+        self.assertEqual("baz()", Foo.baz)
+        self.assertEqual("baz()", Foo.baz())
+        self.assertEqual("baz()", Foo().baz())
+        self.assertEqual("baz(abc)", Foo.baz("abc"))
+        self.assertEqual("baz(abc)", Foo().baz("abc"))
 
 
-
-if __name__ == '__main__':
-  unittest.main()
+if __name__ == "__main__":
+    unittest.main()
