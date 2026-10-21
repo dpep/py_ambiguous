@@ -49,36 +49,13 @@ class TestAmbiguousObject(unittest.TestCase):
     self.do(Foo)
 
 
-  def test_helpers(self):
+  def test_methods(self):
+    # no class decorator needed: @ambiguous works on methods directly
     class Foo(object):
       def __init__(self, name=''):
         self.name = name
 
-      @ambiguous.method
-      def foo(self, val=''):
-        return '%s.foo(%s)' % (self, val)
-
-      @ambiguous.classmethod
-      def bar(cls, val=''):
-        return '%s.bar(%s)' % (cls, val)
-
-      @ambiguous.staticmethod
-      def baz(val=''):
-        return 'baz(%s)' % val
-
-      def __str__(self):
-        return 'Foo(%s)' % self.name
-
-    self.do(Foo)
-
-
-  def test_double_wrap(self):
-    class Foo(object):
-      def __init__(self, name=''):
-        self.name = name
-
-      # unfortunately, this helper is still needed
-      @ambiguous.method
+      @ambiguous
       def foo(self, val=''):
         return '%s.foo(%s)' % (self, val)
 
@@ -103,7 +80,7 @@ class TestAmbiguousObject(unittest.TestCase):
       def __len__(self):
         return 0
 
-      @ambiguous.method
+      @ambiguous
       def name(self):
         return 'empty'
 
@@ -123,6 +100,18 @@ class TestAmbiguousObject(unittest.TestCase):
     self.assertEqual('B', B.who)
     self.assertEqual('B', B.who())
     self.assertEqual('B', B().who())
+
+
+  def test_class_attribute(self):
+    @ambiguous
+    def name(obj):
+      return type(obj).__name__
+
+    # like a plain function, an ambiguous function binds self
+    class Foo:
+      foo = name
+
+    self.assertEqual('Foo', Foo().foo)
 
 
   def do(self, Foo):
