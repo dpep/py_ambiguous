@@ -123,6 +123,38 @@ class TestAmbiguous(unittest.TestCase):
         s += "c"
         self.assertEqual("abc", s)
 
+    def test_truthiness(self):
+        @ambiguous
+        def text(val="x"):
+            return val
+
+        # str and list have no __bool__, so Python falls back to __len__
+        self.assertTrue(text)
+        self.assertFalse(text(""))
+        self.assertFalse(not text)
+
+    def test_mixed_type_ops(self):
+        @ambiguous
+        def one():
+            return 1
+
+        @ambiguous
+        def also_one():
+            return 1
+
+        @ambiguous
+        def letters():
+            return "ab"
+
+        # rely on Python's NotImplemented and reflected-op fallbacks
+        self.assertEqual(one, 1.0)
+        self.assertEqual(one, also_one)
+        self.assertLess(one, 2.5)
+        self.assertEqual(2.5, one + 1.5)
+        self.assertEqual(2.5, 1.5 + one)
+        self.assertEqual(1, max(one, 0.5))
+        self.assertEqual("xab", "x" + letters)
+
     def test_counts(self):
         # don't call functions more than intended
 
