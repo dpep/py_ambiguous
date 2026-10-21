@@ -6,7 +6,18 @@ __all__ = ["decorator"]
 
 def decorator(decorator_fn):
     """
-    Enable a decorator to accept args and kwargs.
+    Let a decorator be used bare or with arguments.
+
+    `decorator_fn` takes the target first, then its own options:
+
+        @decorator
+        def power(fn, exponent=2): ...
+
+        @power                  # power(f)
+        @power(3)               # power(f, 3)
+        @power(exponent=3)      # power(f, exponent=3)
+
+    The first positional arg being callable is what marks it as the target.
     """
 
     @wraps(decorator_fn)

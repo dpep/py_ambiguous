@@ -102,6 +102,13 @@ def _ambiguous_class(cls):
 
 
 def ambiguous(obj):
+    """
+    Make parentheses optional: `foo` acts like `foo()`, and `foo(x)` still works.
+
+    Takes a function, a classmethod / staticmethod, or a class (whose own
+    methods, except dunders, all become ambiguous). The result is computed
+    afresh on each use and is never cached.
+    """
     if isinstance(obj, (BuiltinFunctionType, FunctionType)):
         return _ambiguous_function(obj)
 

@@ -7,6 +7,16 @@ __all__ = ["thing_or_things"]
 
 @decorator
 def thing_or_things(fn, arg_name=None):
+    """
+    Let a function that maps many things take just one, eg. get vs multiget.
+
+    The wrapped function always receives a list and must return a dict keyed
+    by exactly those things, or None. Called with a single thing (anything
+    but a list, set or tuple), the caller gets back just that thing's value.
+
+    The thing is the only parameter, or the only one without a default.
+    Otherwise name it, eg. @thing_or_things("ids").
+    """
     sig = inspect.signature(fn)
     params = sig.parameters.values()
     varargs = [p.name for p in params if p.kind is p.VAR_POSITIONAL]
