@@ -94,8 +94,22 @@ Greeter('bob').hello
 Greeter('bob').hello('hi')
 > 'hi bob'
 
-# or pick individual methods with
-# @ambiguous.method, @ambiguous.classmethod, @ambiguous.staticmethod
+# or pick individual methods
+# (stack above @classmethod / @staticmethod)
+class Dog:
+  @ambiguous
+  def speak(self):
+    return 'woof'
+
+  @ambiguous
+  @classmethod
+  def species(cls):
+    return cls.__name__.lower()
+
+Dog().speak
+> 'woof'
+Dog.species
+> 'dog'
 ```
 
 Each access calls the function again, so changes to its result don't stick (appending to a returned list mutates a throwaway copy), and stateful results like iterators and context managers aren't supported.
