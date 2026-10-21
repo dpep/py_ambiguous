@@ -62,6 +62,25 @@ class TestThingOrThing(unittest.TestCase):
 
         self.assertEqual([1, "a", "b"], foo(1, "a", "b"))
 
+    def test_keyword_only(self):
+        @thing_or_things
+        def kwonly(*, things):
+            return {x: x for x in things}
+
+        @thing_or_things("things")
+        def named(prefix, *, things):
+            return {x: f"{prefix}{x}" for x in things}
+
+        # positional params still win when not named explicitly
+        @thing_or_things
+        def keyed(things, *, key):
+            return {x: key(x) for x in things}
+
+        self.assertEqual(1, kwonly(things=1))
+        self.assertEqual({1: 1, 2: 2}, kwonly(things=[1, 2]))
+        self.assertEqual("+1", named("+", things=1))
+        self.assertEqual(2, keyed(1, key=lambda x: x * 2))
+
     def test_empty(self):
         # this is fine
         self.assertEqual({}, itself([]))

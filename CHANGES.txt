@@ -1,4 +1,5 @@
 Unreleased
+- `thing_or_things` supports keyword-only parameters as the thing
 - `@ambiguous` now works directly on methods; `ambiguous.method`, `ambiguous.classmethod` and `ambiguous.staticmethod` are removed. Replace `@ambiguous.method` with `@ambiguous`, and `@ambiguous.classmethod` / `@ambiguous.staticmethod` with `@ambiguous` stacked above `@classmethod` / `@staticmethod`
 - an ambiguous function assigned as a class attribute now binds `self` on instance access, like a plain function
 - `ambiguous()` now raises TypeError instead of NotImplementedError for unsupported types; update any `except NotImplementedError`

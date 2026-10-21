@@ -7,37 +7,42 @@ __all__ = ["thing_or_things"]
 
 @decorator
 def thing_or_things(fn, arg_name=None):
-    spec = inspect.getfullargspec(fn)
+    sig = inspect.signature(fn)
+    params = sig.parameters.values()
+    varargs = [p.name for p in params if p.kind is p.VAR_POSITIONAL]
+    named = [p for p in params if p.kind not in (p.VAR_POSITIONAL, p.VAR_KEYWORD)]
 
     if arg_name:
-        if spec.varargs == arg_name:
+        if arg_name in varargs:
             raise NotImplementedError("can not use varargs")
 
-        if arg_name not in spec.args:
+        if arg_name not in [p.name for p in named]:
             raise ValueError(f"arg_name not in function signature: {arg_name}")
     else:
         # no args given, determine defaults
 
-        if spec.varargs:
+        if varargs:
             raise NotImplementedError(
                 "please specify which arg to use, eg. @thing_or_things(<arg_name>)"
             )
 
-        if not spec.args:
+        if not named:
             raise TypeError("function does not take arguments")
 
-        if len(spec.args) == 1:
+        # prefer positional args, falling back to keyword-only ones
+        candidates = [p for p in named if p.kind is not p.KEYWORD_ONLY] or named
+        required = [p for p in candidates if p.default is p.empty]
+
+        if len(candidates) == 1:
             # grab first and only arg
-            arg_name = spec.args[0]
-        elif len(spec.args) - len(spec.defaults or []) == 1:
-            # if all args have defaults except the first one
-            arg_name = spec.args[0]
+            arg_name = candidates[0].name
+        elif len(required) == 1:
+            # if all args have defaults except one
+            arg_name = required[0].name
         else:
             raise ValueError(
                 "please specify which arg to use, eg. @thing_or_things(<arg_name>)"
             )
-
-    sig = inspect.signature(fn)
 
     def wrapper(*args, **kwargs):
         # bind like a real call, so the thing can be passed by keyword or default
