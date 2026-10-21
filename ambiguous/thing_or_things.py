@@ -14,20 +14,21 @@ def thing_or_things(fn, arg_name=None):
 
     if arg_name:
         if arg_name in varargs:
-            raise NotImplementedError("can not use varargs")
+            raise NotImplementedError(
+                f"{fn.__name__}(): *{arg_name} can't be the thing, take a list instead"
+            )
 
         if arg_name not in [p.name for p in named]:
-            raise ValueError(f"arg_name not in function signature: {arg_name}")
+            raise ValueError(f"{fn.__name__}() has no parameter {arg_name!r}")
     else:
-        # no args given, determine defaults
-
         if varargs:
             raise NotImplementedError(
-                "please specify which arg to use, eg. @thing_or_things(<arg_name>)"
+                f"{fn.__name__}() takes *{varargs[0]}, so name the thing, "
+                "eg. @thing_or_things('<arg_name>')"
             )
 
         if not named:
-            raise TypeError("function does not take arguments")
+            raise TypeError(f"{fn.__name__}() takes no arguments, so has no thing")
 
         # prefer positional args, falling back to keyword-only ones
         candidates = [p for p in named if p.kind is not p.KEYWORD_ONLY] or named
@@ -41,7 +42,8 @@ def thing_or_things(fn, arg_name=None):
             arg_name = required[0].name
         else:
             raise ValueError(
-                "please specify which arg to use, eg. @thing_or_things(<arg_name>)"
+                f"{fn.__name__}(): can't tell which parameter is the thing, "
+                f"name it, eg. @thing_or_things({candidates[0].name!r})"
             )
 
     def wrapper(*args, **kwargs):
@@ -63,22 +65,21 @@ def thing_or_things(fn, arg_name=None):
         if res is None:
             return
 
-        # check return type
         if not isinstance(res, dict):
-            raise TypeError(f"expected {dict}, found {type(res)}")
+            raise TypeError(
+                f"{fn.__name__}() must return a dict or None, got {type(res).__name__}"
+            )
 
         thing_set = set(things)
         key_set = set(res.keys())
 
-        # ensure all things are mapped
         missing = thing_set - key_set
         if missing:
-            raise KeyError(f"missing things: {list(missing)}")
+            raise KeyError(f"{fn.__name__}() result is missing things: {list(missing)}")
 
-        # ensure there's no extra things
         extra = key_set - thing_set
         if extra:
-            raise KeyError(f"extra things: {list(extra)}")
+            raise KeyError(f"{fn.__name__}() result has extra keys: {list(extra)}")
 
         # unpack as needed
         if single_thing:

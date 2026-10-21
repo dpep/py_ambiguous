@@ -118,7 +118,7 @@ class TestThingOrThing(unittest.TestCase):
 
         # ambiguous which arg is for things
 
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, r"@thing_or_things\('x'\)"):
 
             @thing_or_things
             def foo(x, y):
@@ -154,6 +154,13 @@ class TestThingOrThing(unittest.TestCase):
 
             @thing_or_things("args")
             def foo(*args):
+                pass
+
+    def test_unknown_arg_name(self):
+        with self.assertRaisesRegex(ValueError, "foo.. has no parameter 'thing'"):
+
+            @thing_or_things("thing")
+            def foo(things):
                 pass
 
     def test_arg_error(self):
@@ -256,7 +263,7 @@ class TestThingOrThing(unittest.TestCase):
     def test_return_type(self):
         self.assertEqual({}, thing_or_things(lambda things: {})([]))
 
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(TypeError, "must return a dict or None, got int"):
             thing_or_things(lambda things: 1)(1)
 
         with self.assertRaises(TypeError):
@@ -272,14 +279,14 @@ class TestThingOrThing(unittest.TestCase):
         with self.assertRaises(KeyError):
             thing_or_things(lambda things: {})(1)
 
-        with self.assertRaises(KeyError):
+        with self.assertRaisesRegex(KeyError, r"missing things: \[1\]"):
             thing_or_things(lambda things: {2: 2})(1)
 
         with self.assertRaises(KeyError):
             thing_or_things(lambda things: {2: 2})([1, 2])
 
     def test_extra_key(self):
-        with self.assertRaises(KeyError):
+        with self.assertRaisesRegex(KeyError, r"extra keys: \[2\]"):
             thing_or_things(lambda things: {1: 1, 2: 2})(1)
 
         with self.assertRaises(KeyError):

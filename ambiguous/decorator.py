@@ -28,9 +28,9 @@ def decorator(decorator_fn):
         def collect(*more_args, **more_kwargs):
             if more_args and callable(more_args[0]):
                 if args and len(more_args) > 1:
-                    # arg order is ambiguous
                     raise ValueError(
-                        f"expecting either callable or args, not both: {more_args}"
+                        f"{decorator_fn.__name__}(): ambiguous arg order, pass "
+                        "all args in one call and then the function alone"
                     )
 
                 # prepend callable

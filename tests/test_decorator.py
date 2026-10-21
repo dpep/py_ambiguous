@@ -201,7 +201,7 @@ class TestDecorator(unittest.TestCase):
         abc = lambda: "abc"
 
         # arg order is ambiguous
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, r"prefix\(\): ambiguous arg order"):
             prefix("123")(abc, 2)
 
     def test_wraps(self):
