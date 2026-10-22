@@ -27,6 +27,21 @@ class AmbiguousFunction:
 # vars(), not getattr(): the module's own __eq__, __hash__, etc. aren't operators
 _operators = vars(operator)
 
+# protocols whose builtin adds fallbacks the bare dunder lacks, eg. int(str),
+# reversed(sequence), mixed-type pow / divmod, 3-arg pow
+_builtins = {
+    "__divmod__": divmod,
+    "__float__": float,
+    "__hash__": hash,
+    "__int__": int,
+    "__iter__": iter,
+    "__len__": len,
+    "__pow__": pow,
+    "__reversed__": reversed,
+    "__round__": round,
+}
+_reflected_builtins = {"__rdivmod__": divmod, "__rpow__": pow}
+
 
 def _delegate(op):
     # operators go through the operator module rather than the result's own
@@ -35,8 +50,16 @@ def _delegate(op):
     if op == "__bool__":
         return lambda self: bool(self())
 
-    # 3-arg pow() has no operator equivalent
-    if op in _operators and op != "__pow__":
+    if op in _builtins:
+        fn = _builtins[op]
+        return lambda self, *args: fn(self(), *args)
+
+    # 3-arg pow(base, proxy, mod) passes mod to __rpow__ on 3.14+
+    if op in _reflected_builtins:
+        fn = _reflected_builtins[op]
+        return lambda self, other, *args: fn(other, self(), *args)
+
+    if op in _operators:
         fn = _operators[op]
         return lambda self, *args: fn(self(), *args)
 
