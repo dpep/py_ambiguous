@@ -12,6 +12,7 @@ Unreleased
 - fix `inspect.signature` raising "wrapper loop" when a @decorator returns its target unchanged
 - fix `+=` and other in-place operators on ambiguous functions returning immutable values, eg. int or str
 - fix thing_or_things when the thing is passed by keyword or left to its default
+- the sdist includes the complete test suite, so `python -m unittest` runs from an unpacked sdist
 
 0.5.1, 2026-06-13
 - fix thing_or_things arg-detection crash and tidy ops
