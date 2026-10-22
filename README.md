@@ -95,7 +95,8 @@ Greeter('bob').hello('hi')
 > 'hi bob'
 
 
-# or on individual methods, stacked above @classmethod / @staticmethod
+# or on individual methods. Always stack @ambiguous on top, above
+# @classmethod / @staticmethod / @property
 class Config:
     @ambiguous
     @classmethod
