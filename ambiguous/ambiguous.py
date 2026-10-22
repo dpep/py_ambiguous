@@ -1,3 +1,4 @@
+import inspect
 import operator
 from functools import partial
 from types import BuiltinFunctionType, FunctionType
@@ -125,6 +126,12 @@ def _ambiguous_class(cls):
         if name.startswith("__"):
             continue
 
+        # `await` needs the coroutine itself, and async frameworks detect
+        # coroutine functions by inspecting the method
+        func = getattr(attr, "__func__", attr)
+        if inspect.iscoroutinefunction(func) or inspect.isasyncgenfunction(func):
+            continue
+
         if isinstance(attr, FunctionType):
             setattr(cls, name, _AmbiguousMethod(attr))
         elif isinstance(attr, (classmethod, staticmethod)):
@@ -138,7 +145,7 @@ def ambiguous(obj):
     Make parentheses optional: `foo` acts like `foo()`, and `foo(x)` still works.
 
     Takes a function, a classmethod / staticmethod, or a class (whose own
-    methods, except dunders, all become ambiguous). The result is computed
+    methods, except dunders and async ones, all become ambiguous). The result is computed
     afresh on each use and is never cached.
     """
     if isinstance(obj, (BuiltinFunctionType, FunctionType)):

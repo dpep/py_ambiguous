@@ -1,4 +1,5 @@
 import abc
+import asyncio
 import dataclasses
 import inspect
 import pydoc
@@ -99,6 +100,29 @@ class TestAmbiguousObject(unittest.TestCase):
         self.assertEqual("B", B.who)
         self.assertEqual("B", B.who())
         self.assertEqual("B", B().who())
+
+    def test_async_methods_skipped(self):
+        @ambiguous
+        class Service:
+            async def fetch(self):
+                return "data"
+
+            @classmethod
+            async def create(cls):
+                return cls()
+
+            async def stream(self):
+                yield "data"
+
+            def name(self):
+                return "service"
+
+        # async methods stay awaitable and detectable as async
+        self.assertTrue(inspect.iscoroutinefunction(Service().fetch))
+        self.assertTrue(inspect.iscoroutinefunction(Service.create))
+        self.assertTrue(inspect.isasyncgenfunction(Service().stream))
+        self.assertEqual("data", asyncio.run(Service().fetch()))
+        self.assertEqual("service", Service().name)
 
     def test_class_attribute(self):
         @ambiguous
