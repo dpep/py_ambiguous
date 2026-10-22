@@ -155,6 +155,27 @@ class TestAmbiguous(unittest.TestCase):
         self.assertEqual(1, max(one, 0.5))
         self.assertEqual("xab", "x" + letters)
 
+    def test_builtin_fallbacks(self):
+        def val(x):
+            return ambiguous(lambda: x)
+
+        # the builtins add fallbacks and checks that the bare dunders lack
+        self.assertEqual(2**0.5, val(2) ** 0.5)
+        self.assertEqual(8, 2 ** val(3))
+        self.assertEqual(3, pow(val(2), 3, 5))
+        self.assertEqual((2.0, 2.0), divmod(val(7), 2.5))
+        self.assertEqual((2.0, 2.0), divmod(7.0, val(2.5)))
+        self.assertEqual(12, int(val("12")))
+        self.assertEqual(12.0, float(val("12")))
+        self.assertEqual(["c", "b", "a"], list(reversed(val("abc"))))
+        self.assertEqual(3, round(val(3.14159)))
+
+        with self.assertRaises(TypeError):
+            iter(val(5))
+
+        with self.assertRaisesRegex(TypeError, "unhashable"):
+            hash(val([]))
+
     def test_counts(self):
         # don't call functions more than intended
 

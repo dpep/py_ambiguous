@@ -2,6 +2,7 @@ Unreleased
 - clearer error messages from `thing_or_things` and `decorator`: they name the function and, where there is one, the fix. Exception types are unchanged
 - `thing_or_things` supports keyword-only parameters as the thing
 - fix truthiness and mixed-type operators on ambiguous functions: `bool()` / `if` on a str or list result, `one == 1.0`, `1.5 + one`, `'a' + text`
+- fix builtins on ambiguous functions that relied on Python's fallbacks: `x ** 0.5`, `divmod(x, 2.5)`, `int('12')`, `reversed('abc')`, and `iter()` / `hash()` raising TypeError for unsupported results
 - `@ambiguous` now works directly on methods; `ambiguous.method`, `ambiguous.classmethod` and `ambiguous.staticmethod` are removed. Replace `@ambiguous.method` with `@ambiguous`, and `@ambiguous.classmethod` / `@ambiguous.staticmethod` with `@ambiguous` stacked above `@classmethod` / `@staticmethod`
 - an ambiguous function defined or assigned in a class body now binds `self` on instance access, like a plain function. In an Enum, decorate the class with `@ambiguous` instead of individual methods
 - `ambiguous()` now raises TypeError instead of NotImplementedError for unsupported types; update any `except NotImplementedError`
