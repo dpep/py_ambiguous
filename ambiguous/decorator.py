@@ -4,6 +4,11 @@ from inspect import isfunction
 __all__ = ["decorator"]
 
 
+def _name(fn):
+    # callable objects and partials have no __name__
+    return getattr(fn, "__name__", None) or repr(fn)
+
+
 def decorator(decorator_fn):
     """
     Let a decorator be used bare or with arguments.
@@ -38,7 +43,7 @@ def decorator(decorator_fn):
             if more_args and callable(more_args[0]):
                 if args and len(more_args) > 1:
                     raise ValueError(
-                        f"{decorator_fn.__name__}(): ambiguous arg order, pass "
+                        f"{_name(decorator_fn)}(): ambiguous arg order, pass "
                         "all args in one call and then the function alone"
                     )
 
