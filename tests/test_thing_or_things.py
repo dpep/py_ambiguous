@@ -163,6 +163,30 @@ class TestThingOrThing(unittest.TestCase):
             def foo(things):
                 pass
 
+        with self.assertRaisesRegex(NotImplementedError, r"\*\*kw can't be the thing"):
+
+            @thing_or_things("kw")
+            def foo(things, **kw):
+                pass
+
+    def test_method_hint(self):
+        # suggest the thing, not self
+        with self.assertRaisesRegex(ValueError, r"@thing_or_things\('ids'\)"):
+
+            class Foo:
+                @thing_or_things
+                def get(self, ids):
+                    pass
+
+    def test_nameless_callable(self):
+        class Getter:
+            def __call__(self, things):
+                return [1]
+
+        # errors name the callable even without a __name__
+        with self.assertRaisesRegex(TypeError, "Getter.*must return a dict"):
+            thing_or_things(Getter())(0)
+
     def test_arg_error(self):
         @thing_or_things("things")
         def foo(a, things, c=3):

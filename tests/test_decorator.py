@@ -1,3 +1,4 @@
+import functools
 import inspect
 import unittest
 
@@ -203,6 +204,11 @@ class TestDecorator(unittest.TestCase):
         # arg order is ambiguous
         with self.assertRaisesRegex(ValueError, r"prefix\(\): ambiguous arg order"):
             prefix("123")(abc, 2)
+
+        # a decorator without a __name__ still gets a readable error
+        nameless = decorator(functools.partial(lambda fn, *args: fn))
+        with self.assertRaisesRegex(ValueError, r"partial.*ambiguous arg order"):
+            nameless("123")(abc, 2)
 
     def test_wraps(self):
         @decorator

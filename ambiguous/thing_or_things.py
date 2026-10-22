@@ -1,6 +1,6 @@
 import inspect
 
-from .decorator import decorator
+from .decorator import _name, decorator
 
 __all__ = ["thing_or_things"]
 
@@ -17,28 +17,31 @@ def thing_or_things(fn, arg_name=None):
     The thing is the only parameter, or the only one without a default.
     Otherwise name it, eg. @thing_or_things("ids").
     """
+    name = _name(fn)
     sig = inspect.signature(fn)
     params = sig.parameters.values()
     varargs = [p.name for p in params if p.kind is p.VAR_POSITIONAL]
+    varkw = [p.name for p in params if p.kind is p.VAR_KEYWORD]
     named = [p for p in params if p.kind not in (p.VAR_POSITIONAL, p.VAR_KEYWORD)]
 
     if arg_name:
-        if arg_name in varargs:
+        if arg_name in varargs + varkw:
+            stars = "*" if arg_name in varargs else "**"
             raise NotImplementedError(
-                f"{fn.__name__}(): *{arg_name} can't be the thing, take a list instead"
+                f"{name}(): {stars}{arg_name} can't be the thing, take a list instead"
             )
 
         if arg_name not in [p.name for p in named]:
-            raise ValueError(f"{fn.__name__}() has no parameter {arg_name!r}")
+            raise ValueError(f"{name}() has no parameter {arg_name!r}")
     else:
         if varargs:
             raise NotImplementedError(
-                f"{fn.__name__}() takes *{varargs[0]}, so name the thing, "
+                f"{name}() takes *{varargs[0]}, so name the thing, "
                 "eg. @thing_or_things('<arg_name>')"
             )
 
         if not named:
-            raise TypeError(f"{fn.__name__}() takes no arguments, so has no thing")
+            raise TypeError(f"{name}() takes no arguments, so has no thing")
 
         # prefer positional args, falling back to keyword-only ones
         candidates = [p for p in named if p.kind is not p.KEYWORD_ONLY] or named
@@ -51,9 +54,14 @@ def thing_or_things(fn, arg_name=None):
             # if all args have defaults except one
             arg_name = required[0].name
         else:
+            # on methods, the first param is self / cls, never the thing
+            hint = next(
+                (p.name for p in candidates if p.name not in ("self", "cls")),
+                candidates[0].name,
+            )
             raise ValueError(
-                f"{fn.__name__}(): can't tell which parameter is the thing, "
-                f"name it, eg. @thing_or_things({candidates[0].name!r})"
+                f"{name}(): can't tell which parameter is the thing, "
+                f"name it, eg. @thing_or_things({hint!r})"
             )
 
     def wrapper(*args, **kwargs):
@@ -61,7 +69,7 @@ def thing_or_things(fn, arg_name=None):
         try:
             bound = sig.bind(*args, **kwargs)
         except TypeError as e:
-            raise TypeError(f"{fn.__name__}(): {e}") from None
+            raise TypeError(f"{name}(): {e}") from None
         bound.apply_defaults()
 
         arg = bound.arguments[arg_name]
@@ -76,7 +84,7 @@ def thing_or_things(fn, arg_name=None):
 
         if not isinstance(res, dict):
             raise TypeError(
-                f"{fn.__name__}() must return a dict or None, got {type(res).__name__}"
+                f"{name}() must return a dict or None, got {type(res).__name__}"
             )
 
         thing_set = set(things)
@@ -84,11 +92,11 @@ def thing_or_things(fn, arg_name=None):
 
         missing = thing_set - key_set
         if missing:
-            raise KeyError(f"{fn.__name__}() result is missing things: {list(missing)}")
+            raise KeyError(f"{name}() result is missing things: {list(missing)}")
 
         extra = key_set - thing_set
         if extra:
-            raise KeyError(f"{fn.__name__}() result has extra keys: {list(extra)}")
+            raise KeyError(f"{name}() result has extra keys: {list(extra)}")
 
         if single_thing:
             res = res[things[0]]
