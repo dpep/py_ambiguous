@@ -90,6 +90,11 @@ class _AmbiguousMethod:
     def __init__(self, func):
         self.func = func
 
+    # abc reads this off each class attr to find abstract methods
+    @property
+    def __isabstractmethod__(self):
+        return getattr(self.func, "__isabstractmethod__", False)
+
     def __get__(self, obj, objtype=None):
         if obj is None:
             return self.func
@@ -103,6 +108,10 @@ class _AmbiguousDescriptor:
     # subclasses get their own cls
     def __init__(self, desc):
         self.desc = desc
+
+    @property
+    def __isabstractmethod__(self):
+        return self.desc.__isabstractmethod__
 
     def __get__(self, obj, objtype=None):
         return _ambiguous_function(self.desc.__get__(obj, objtype))

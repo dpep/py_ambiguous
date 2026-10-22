@@ -161,6 +161,34 @@ class TestAmbiguousObject(unittest.TestCase):
         self.assertEqual("decorated", Decorated().name)
         self.assertIn("name", pydoc.render_doc(Data))
 
+    def test_abstract_methods(self):
+        class Base(abc.ABC):
+            @ambiguous
+            @abc.abstractmethod
+            def kind(self): ...
+
+            @ambiguous
+            @classmethod
+            @abc.abstractmethod
+            def label(cls): ...
+
+        class Impl(Base):
+            @ambiguous
+            def kind(self):
+                return "impl"
+
+            @ambiguous
+            @classmethod
+            def label(cls):
+                return "Impl"
+
+        self.assertEqual({"kind", "label"}, Base.__abstractmethods__)
+        with self.assertRaises(TypeError):
+            Base()
+
+        self.assertEqual("impl", Impl().kind)
+        self.assertEqual("Impl", Impl.label)
+
     def test_signature(self):
         @ambiguous
         def foo():
