@@ -36,6 +36,8 @@ cubed(2)
 > 8
 ```
 
+The first positional arg being callable is what marks it as the target, so options can't be callables.
+
 #### thing_or_things: combine gets and multigets
 
 ```python
@@ -59,6 +61,8 @@ def prefix(prefix, args):
 prefix('abc', [1, 2])
 > {1: 'abc_1', 2: 'abc_2'}
 ```
+
+A list, tuple, set or frozenset is many things; anything else, including a string, is one. The function must return a value for every thing, else KeyError. On methods, `self` / `cls` is never the thing.
 
 
 #### optional parentheses  (warning: still experimental)
@@ -95,8 +99,7 @@ Greeter('bob').hello('hi')
 > 'hi bob'
 
 
-# or on individual methods. Always stack @ambiguous on top, above
-# @classmethod / @staticmethod / @property
+# or on individual methods, stacked above @classmethod / @staticmethod
 class Config:
     @ambiguous
     @classmethod
@@ -106,6 +109,8 @@ class Config:
 Config.name
 > 'Config'
 ```
+
+An ambiguous function is a stand-in that acts like its result, not the result itself. Code that checks the type, eg. `json.dumps(foo)` or `datetime.fromtimestamp(now)`, needs the call: `foo()`.
 
 ----
 [![installs](https://img.shields.io/pypi/dm/ambiguous.svg?label=installs)](https://pypi.org/project/ambiguous)
