@@ -169,6 +169,21 @@ class TestThingOrThing(unittest.TestCase):
             def foo(things, **kw):
                 pass
 
+    def test_methods(self):
+        # self / cls is never the thing
+        class Repo:
+            @thing_or_things
+            def get(self, ids):
+                return {x: x for x in ids}
+
+            @thing_or_things
+            def kwonly(self, *, ids):
+                return {x: x for x in ids}
+
+        self.assertEqual(1, Repo().get(1))
+        self.assertEqual({1: 1}, Repo().get([1]))
+        self.assertEqual(1, Repo().kwonly(ids=1))
+
     def test_method_hint(self):
         # name the method by its qualname, and suggest the thing, not self
         with self.assertRaisesRegex(
@@ -177,8 +192,15 @@ class TestThingOrThing(unittest.TestCase):
 
             class Foo:
                 @thing_or_things
-                def get(self, ids):
+                def get(self, ids, keys):
                     pass
+
+    def test_async(self):
+        with self.assertRaisesRegex(TypeError, "async"):
+
+            @thing_or_things
+            async def get(ids):
+                return {}
 
     def test_nameless_callable(self):
         class Getter:
@@ -275,6 +297,9 @@ class TestThingOrThing(unittest.TestCase):
         self.assertEqual({3: 3}, itself({3}))
         self.assertEqual({1: 1, 2: 2}, itself({1, 2}))
 
+        # frozensets
+        self.assertEqual({1: 1, 2: 2}, itself(frozenset({1, 2})))
+
     def test_wrapper(self):
         # ensure function name was preserved
         self.assertEqual("itself", itself.__name__)
@@ -310,6 +335,27 @@ class TestThingOrThing(unittest.TestCase):
 
         with self.assertRaises(KeyError):
             thing_or_things(lambda things: {2: 2})([1, 2])
+
+    def test_unhashable_thing(self):
+        called = []
+
+        @thing_or_things
+        def spy(things):
+            called.append(things)
+            return {}
+
+        with self.assertRaisesRegex(TypeError, "spy.*unhashable"):
+            spy({1: 2})
+
+        self.assertEqual([], called)
+
+    def test_key_order(self):
+        # listed in the order of the things, not set order
+        with self.assertRaisesRegex(KeyError, r"missing things: \[3, 1, 2\]"):
+            thing_or_things(lambda things: {})([3, 1, 2])
+
+        with self.assertRaisesRegex(KeyError, r"extra keys: \['z', 'y'\]"):
+            thing_or_things(lambda things: {1: 1, "z": 0, "y": 0})(1)
 
     def test_extra_key(self):
         with self.assertRaisesRegex(KeyError, r"extra keys: \[2\]"):

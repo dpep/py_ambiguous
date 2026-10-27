@@ -12,12 +12,17 @@ def thing_or_things(fn, arg_name=None):
 
     The wrapped function always receives a list and must return a dict keyed
     by exactly those things, or None. Called with a single thing (anything
-    but a list, set or tuple), the caller gets back just that thing's value.
+    but a list, tuple, set or frozenset), the caller gets back just that
+    thing's value.
 
-    The thing is the only parameter, or the only one without a default.
+    The thing is the only parameter, or the only one without a default,
+    ignoring self / cls.
     Otherwise name it, eg. @thing_or_things("ids").
     """
     name = _name(fn)
+    if inspect.iscoroutinefunction(fn):
+        raise TypeError(f"{name}(): async functions aren't supported")
+
     sig = inspect.signature(fn)
     params = sig.parameters.values()
     varargs = [p.name for p in params if p.kind is p.VAR_POSITIONAL]
@@ -43,8 +48,14 @@ def thing_or_things(fn, arg_name=None):
         if not named:
             raise TypeError(f"{name}() takes no arguments, so has no thing")
 
-        # prefer positional args, falling back to keyword-only ones
-        candidates = [p for p in named if p.kind is not p.KEYWORD_ONLY] or named
+        # prefer positional args, falling back to keyword-only ones. On
+        # methods, self / cls is never the thing
+        positional = [p for p in named if p.kind is not p.KEYWORD_ONLY]
+        candidates = (
+            [p for p in positional if p.name not in ("self", "cls")]
+            or [p for p in named if p.kind is p.KEYWORD_ONLY]
+            or named
+        )
         required = [p for p in candidates if p.default is p.empty]
 
         if len(candidates) == 1:
@@ -54,14 +65,9 @@ def thing_or_things(fn, arg_name=None):
             # if all args have defaults except one
             arg_name = required[0].name
         else:
-            # on methods, the first param is self / cls, never the thing
-            hint = next(
-                (p.name for p in candidates if p.name not in ("self", "cls")),
-                candidates[0].name,
-            )
             raise ValueError(
                 f"{name}(): can't tell which parameter is the thing, "
-                f"name it, eg. @thing_or_things({hint!r})"
+                f"name it, eg. @thing_or_things({candidates[0].name!r})"
             )
 
     def wrapper(*args, **kwargs):
@@ -73,8 +79,14 @@ def thing_or_things(fn, arg_name=None):
         bound.apply_defaults()
 
         arg = bound.arguments[arg_name]
-        single_thing = not isinstance(arg, (list, set, tuple))
+        single_thing = not isinstance(arg, (list, tuple, set, frozenset))
         things = [arg] if single_thing else list(arg)
+
+        # before calling fn, so a bad thing never reaches it
+        try:
+            thing_set = set(things)
+        except TypeError as e:
+            raise TypeError(f"{name}(): things must be hashable, {e}") from None
 
         bound.arguments[arg_name] = things
         res = fn(*bound.args, **bound.kwargs)
@@ -87,16 +99,14 @@ def thing_or_things(fn, arg_name=None):
                 f"{name}() must return a dict or None, got {type(res).__name__}"
             )
 
-        thing_set = set(things)
-        key_set = set(res)
-
-        missing = thing_set - key_set
+        # listed in order, rather than set order
+        missing = [x for x in dict.fromkeys(things) if x not in res]
         if missing:
-            raise KeyError(f"{name}() result is missing things: {list(missing)}")
+            raise KeyError(f"{name}() result is missing things: {missing}")
 
-        extra = key_set - thing_set
+        extra = [k for k in res if k not in thing_set]
         if extra:
-            raise KeyError(f"{name}() result has extra keys: {list(extra)}")
+            raise KeyError(f"{name}() result has extra keys: {extra}")
 
         if single_thing:
             res = res[things[0]]
