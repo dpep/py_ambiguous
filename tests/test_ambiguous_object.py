@@ -140,6 +140,20 @@ class TestAmbiguousObject(unittest.TestCase):
                 async def create(cls):
                     return cls()
 
+    def test_rewrap(self):
+        calls = []
+
+        @ambiguous
+        def foo():
+            calls.append(1)
+            return "foo"
+
+        # rejected without calling foo, whose result would answer isinstance()
+        with self.assertRaises(TypeError):
+            ambiguous(foo)
+
+        self.assertEqual([], calls)
+
     def test_class_decorator_other_attrs(self):
         class Lazy:
             # eg. a werkzeug LocalProxy outside an app context
@@ -172,6 +186,18 @@ class TestAmbiguousObject(unittest.TestCase):
         @dataclasses.dataclass
         class Settings:
             zone: str = region
+
+        # defined in the class body, but with no self to bind
+        class Bar:
+            timeout = ambiguous(lambda: 5)
+
+            @ambiguous
+            def retries():
+                return 3
+
+        self.assertEqual(5, Bar.timeout)
+        self.assertEqual(5, Bar().timeout)
+        self.assertEqual(3, Bar().retries)
 
         self.assertEqual("us-east-1", Foo.default)
         self.assertEqual("us-east-1", Foo().default)
