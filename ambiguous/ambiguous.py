@@ -1,5 +1,7 @@
 import inspect
+import math
 import operator
+import os
 from functools import partial
 from types import BuiltinFunctionType, FunctionType
 
@@ -35,10 +37,14 @@ class AmbiguousFunction:
 _operators = vars(operator)
 
 # protocols whose builtin adds fallbacks the bare dunder lacks, eg. int(str),
-# reversed(sequence), mixed-type pow / divmod, 3-arg pow
+# reversed(sequence), math.floor(float), mixed-type pow / divmod, 3-arg pow
 _builtins = {
+    "__ceil__": math.ceil,
+    "__complex__": complex,
     "__divmod__": divmod,
     "__float__": float,
+    "__floor__": math.floor,
+    "__fspath__": os.fspath,
     "__hash__": hash,
     "__int__": int,
     "__iter__": iter,
@@ -46,6 +52,7 @@ _builtins = {
     "__pow__": pow,
     "__reversed__": reversed,
     "__round__": round,
+    "__trunc__": math.trunc,
 }
 _reflected_builtins = {"__rdivmod__": divmod, "__rpow__": pow}
 

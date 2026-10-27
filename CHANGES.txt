@@ -4,7 +4,7 @@ Unreleased
 - fix truthiness and mixed-type operators on ambiguous functions: `bool()` / `if` on a str or list result, `one == 1.0`, `1.5 + one`, `'a' + text`
 - the `@ambiguous` class decorator leaves `async def` methods alone, so they stay awaitable
 - fix `@ambiguous` above `@abc.abstractmethod` losing abstractness, which let the abstract class be instantiated
-- fix builtins on ambiguous functions that relied on Python's fallbacks: `x ** 0.5`, `divmod(x, 2.5)`, `int('12')`, `reversed('abc')`, and `iter()` / `hash()` raising TypeError for unsupported results
+- fix builtins on ambiguous functions that relied on Python's fallbacks: `x ** 0.5`, `divmod(x, 2.5)`, `int('12')`, `reversed('abc')`, `math.floor()` / `math.ceil()`, `complex()`, `os.fspath()`, and `iter()` / `hash()` raising TypeError for unsupported results
 - `@ambiguous` now works directly on methods; `ambiguous.method`, `ambiguous.classmethod` and `ambiguous.staticmethod` are removed. Replace `@ambiguous.method` with `@ambiguous`, and `@ambiguous.classmethod` / `@ambiguous.staticmethod` with `@ambiguous` stacked above `@classmethod` / `@staticmethod`
 - an `@ambiguous` function defined in a class body now binds `self` on instance access, like a plain method; one assigned from elsewhere, eg. `region = default_region`, stays a value. In an Enum, or a NamedTuple on Python 3.12, decorate the class with `@ambiguous` instead of individual methods
 - `ambiguous()` now raises TypeError instead of NotImplementedError for unsupported types; update any `except NotImplementedError`
