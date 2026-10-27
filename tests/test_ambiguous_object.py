@@ -124,6 +124,42 @@ class TestAmbiguousObject(unittest.TestCase):
         self.assertEqual("data", asyncio.run(Service().fetch()))
         self.assertEqual("service", Service().name)
 
+    def test_async_rejected(self):
+        # can't be awaited without the call, so parentheses aren't optional
+        with self.assertRaisesRegex(TypeError, "async"):
+
+            @ambiguous
+            async def fetch():
+                return "data"
+
+        with self.assertRaisesRegex(TypeError, "async"):
+
+            class Service:
+                @ambiguous
+                @classmethod
+                async def create(cls):
+                    return cls()
+
+    def test_class_decorator_other_attrs(self):
+        class Lazy:
+            # eg. a werkzeug LocalProxy outside an app context
+            def __getattr__(self, name):
+                raise RuntimeError("outside app context")
+
+        @ambiguous
+        def now():
+            raise AssertionError("called while decorating")
+
+        @ambiguous
+        class Foo:
+            app = Lazy()
+            clock = now
+
+            def name(self):
+                return "foo"
+
+        self.assertEqual("foo", Foo().name)
+
     def test_class_attribute(self):
         @ambiguous
         def region():
