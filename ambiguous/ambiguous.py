@@ -19,10 +19,16 @@ class AmbiguousFunction:
         # descriptor: abc, dataclasses and pydoc read the class namespace, and
         # a proxy there would answer them by calling the method without self
         wrapper = object.__getattribute__(self, "_wrapper")
+        func = wrapper.func
 
-        # builtins and already-bound methods don't bind self, as in plain Python
-        if isinstance(wrapper.func, FunctionType) and not wrapper.args:
-            setattr(owner, name, _AmbiguousMethod(wrapper.func))
+        # only methods defined in this class body bind self. A function
+        # assigned from elsewhere stays a value, eg. `region = default_region`,
+        # as do builtins and already-bound methods
+        defined_here = getattr(func, "__qualname__", "").startswith(
+            owner.__qualname__ + "."
+        )
+        if isinstance(func, FunctionType) and defined_here and not wrapper.args:
+            setattr(owner, name, _AmbiguousMethod(func))
 
 
 # vars(), not getattr(): the module's own __eq__, __hash__, etc. aren't operators

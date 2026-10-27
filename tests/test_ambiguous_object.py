@@ -126,14 +126,20 @@ class TestAmbiguousObject(unittest.TestCase):
 
     def test_class_attribute(self):
         @ambiguous
-        def name(obj):
-            return type(obj).__name__
+        def region():
+            return "us-east-1"
 
-        # like a plain function, an ambiguous function binds self
+        # assigned rather than defined in the class body, it stays a value
         class Foo:
-            foo = name
+            default = region
 
-        self.assertEqual("Foo", Foo().foo)
+        @dataclasses.dataclass
+        class Settings:
+            zone: str = region
+
+        self.assertEqual("us-east-1", Foo.default)
+        self.assertEqual("us-east-1", Foo().default)
+        self.assertEqual("us-east-1", Settings().zone)
 
     def test_class_attribute_no_rebinding(self):
         # like plain Python, builtins and already-bound methods don't bind self
