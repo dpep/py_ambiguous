@@ -23,13 +23,17 @@ class AmbiguousFunction:
         wrapper = object.__getattribute__(self, "_wrapper")
         func = wrapper.func
 
-        # only methods defined in this class body bind self. A function
-        # assigned from elsewhere stays a value, eg. `region = default_region`,
-        # as do builtins and already-bound methods
-        defined_here = getattr(func, "__qualname__", "").startswith(
-            owner.__qualname__ + "."
-        )
-        if isinstance(func, FunctionType) and defined_here and not wrapper.args:
+        # builtins and already-bound methods don't bind self, as in plain Python
+        if not isinstance(func, FunctionType) or wrapper.args:
+            return
+
+        # only methods bind self: defined in this class body, with a positional
+        # param to take it. Anything else stays a value, eg. a function assigned
+        # from elsewhere (`region = default_region`) or `ambiguous(lambda: 5)`
+        defined_here = func.__qualname__.startswith(owner.__qualname__ + ".")
+        code = func.__code__
+        takes_self = code.co_argcount or code.co_flags & inspect.CO_VARARGS
+        if defined_here and takes_self:
             setattr(owner, name, _AmbiguousMethod(func))
 
 
@@ -171,21 +175,25 @@ def ambiguous(obj):
     functions are rejected. The result is computed afresh on each use and is
     never cached.
     """
-    if isinstance(obj, (FunctionType, classmethod, staticmethod)) and _is_async(obj):
+    # type(), not isinstance(), which reads __class__: on an ambiguous proxy,
+    # that would call it
+    kind = type(obj)
+
+    if issubclass(kind, (FunctionType, classmethod, staticmethod)) and _is_async(obj):
         raise TypeError(
             "async functions can't be ambiguous: awaiting needs the call, "
             "eg. `await fetch()`"
         )
 
-    if isinstance(obj, (BuiltinFunctionType, FunctionType)):
+    if issubclass(kind, (BuiltinFunctionType, FunctionType)):
         return _ambiguous_function(obj)
 
-    if isinstance(obj, type):
+    if issubclass(kind, type):
         return _ambiguous_class(obj)
 
-    if isinstance(obj, (classmethod, staticmethod)):
+    if issubclass(kind, (classmethod, staticmethod)):
         return _AmbiguousDescriptor(obj)
 
     raise TypeError(
-        f"expected a function, class, classmethod or staticmethod, got {type(obj).__name__}"
+        f"expected a function, class, classmethod or staticmethod, got {kind.__name__}"
     )
