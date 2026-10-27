@@ -1,6 +1,7 @@
 Unreleased
 - clearer error messages from `thing_or_things` and `decorator`: they name the function and, where there is one, the fix. Exception types are unchanged
 - `thing_or_things` supports keyword-only parameters as the thing
+- decorators built with `decorator` (including `thing_or_things`) raise TypeError when stacked below `@classmethod` / `@staticmethod`, instead of silently misbehaving
 - fix truthiness and mixed-type operators on ambiguous functions: `bool()` / `if` on a str or list result, `one == 1.0`, `1.5 + one`, `'a' + text`
 - the `@ambiguous` class decorator leaves `async def` methods alone, so they stay awaitable; `@ambiguous` directly on an `async def` raises TypeError
 - fix the `@ambiguous` class decorator calling ambiguous functions stored as class attributes

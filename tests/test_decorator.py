@@ -249,6 +249,24 @@ class TestDecorator(unittest.TestCase):
 
         self.assertEqual(2, Foo().val(1))
 
+    def test_wrong_order(self):
+        # classmethod / staticmethod objects aren't plain callables to wrap
+        with self.assertRaisesRegex(TypeError, "above"):
+
+            class Foo:
+                @power
+                @classmethod
+                def cm(cls, x):
+                    return x
+
+        with self.assertRaisesRegex(TypeError, "above"):
+
+            class Bar:
+                @power(exponent=3)
+                @staticmethod
+                def sm(x):
+                    return x
+
     def test_obj_wrapper(self):
         @decorator
         def itself(obj):
