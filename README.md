@@ -96,17 +96,6 @@ Greeter('bob').hello
 > 'hello bob'
 Greeter('bob').hello('hi')
 > 'hi bob'
-
-
-# or on individual methods, stacked above @classmethod / @staticmethod
-class Config:
-    @ambiguous
-    @classmethod
-    def name(cls):
-        return cls.__name__
-
-Config.name
-> 'Config'
 ```
 
 
