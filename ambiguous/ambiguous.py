@@ -131,6 +131,11 @@ class _AmbiguousDescriptor:
         return _ambiguous_function(self.desc.__get__(obj, objtype))
 
 
+def _is_async(obj):
+    func = obj.__func__ if isinstance(obj, (classmethod, staticmethod)) else obj
+    return inspect.iscoroutinefunction(func) or inspect.isasyncgenfunction(func)
+
+
 def _ambiguous_class(cls):
     # only the class's own attrs, so inherited methods are left alone
     for name, attr in list(vars(cls).items()):
@@ -139,15 +144,19 @@ def _ambiguous_class(cls):
         if name.startswith("__"):
             continue
 
+        # check type() before anything else: probing an attr can run its code,
+        # and isinstance() reads __class__, which an ambiguous proxy delegates
+        if not issubclass(type(attr), (FunctionType, classmethod, staticmethod)):
+            continue
+
         # `await` needs the coroutine itself, and async frameworks detect
         # coroutine functions by inspecting the method
-        func = getattr(attr, "__func__", attr)
-        if inspect.iscoroutinefunction(func) or inspect.isasyncgenfunction(func):
+        if _is_async(attr):
             continue
 
         if isinstance(attr, FunctionType):
             setattr(cls, name, _AmbiguousMethod(attr))
-        elif isinstance(attr, (classmethod, staticmethod)):
+        else:
             setattr(cls, name, _AmbiguousDescriptor(attr))
 
     return cls
@@ -158,9 +167,16 @@ def ambiguous(obj):
     Make parentheses optional: `foo` acts like `foo()`, and `foo(x)` still works.
 
     Takes a function, a classmethod / staticmethod, or a class (whose own
-    methods, except dunders and async ones, all become ambiguous). The result is computed
-    afresh on each use and is never cached.
+    methods, except dunders and async ones, all become ambiguous). Async
+    functions are rejected. The result is computed afresh on each use and is
+    never cached.
     """
+    if isinstance(obj, (FunctionType, classmethod, staticmethod)) and _is_async(obj):
+        raise TypeError(
+            "async functions can't be ambiguous: awaiting needs the call, "
+            "eg. `await fetch()`"
+        )
+
     if isinstance(obj, (BuiltinFunctionType, FunctionType)):
         return _ambiguous_function(obj)
 
