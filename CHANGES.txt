@@ -1,7 +1,7 @@
 Unreleased
 - clearer error messages from `thing_or_things` and `decorator`: they name the function and, where there is one, the fix. Exception types are unchanged
 - `thing_or_things` supports keyword-only parameters as the thing
-- `thing_or_things` ignores `self` / `cls` when finding the thing, so methods like `get(self, ids)` no longer need it named
+- `thing_or_things` ignores a method's `self` / `cls` when finding the thing, so methods like `get(self, ids)` no longer need it named
 - `thing_or_things` treats a frozenset as many things, like a set; it rejects async functions and unhashable things up front
 - decorators built with `decorator` (including `thing_or_things`) raise TypeError when stacked below `@classmethod` / `@staticmethod`, instead of silently misbehaving
 - fix truthiness and mixed-type operators on ambiguous functions: `bool()` / `if` on a str or list result, `one == 1.0`, `1.5 + one`, `'a' + text`

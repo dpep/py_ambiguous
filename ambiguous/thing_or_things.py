@@ -48,13 +48,17 @@ def thing_or_things(fn, arg_name=None):
         if not named:
             raise TypeError(f"{name}() takes no arguments, so has no thing")
 
-        # prefer positional args, falling back to keyword-only ones. On
-        # methods, self / cls is never the thing
+        # prefer positional args, falling back to keyword-only ones
         positional = [p for p in named if p.kind is not p.KEYWORD_ONLY]
+
+        # on methods, ie. defined in a class body, self / cls is never the thing
+        owner, _, _ = getattr(fn, "__qualname__", "").rpartition(".")
+        is_method = owner and not owner.endswith("<locals>")
+        if is_method and positional and positional[0].name in ("self", "cls"):
+            positional = positional[1:]
+
         candidates = (
-            [p for p in positional if p.name not in ("self", "cls")]
-            or [p for p in named if p.kind is p.KEYWORD_ONLY]
-            or named
+            positional or [p for p in named if p.kind is p.KEYWORD_ONLY] or named
         )
         required = [p for p in candidates if p.default is p.empty]
 

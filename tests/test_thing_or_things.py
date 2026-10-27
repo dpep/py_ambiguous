@@ -184,6 +184,14 @@ class TestThingOrThing(unittest.TestCase):
         self.assertEqual({1: 1}, Repo().get([1]))
         self.assertEqual(1, Repo().kwonly(ids=1))
 
+    def test_self_param_on_function(self):
+        # outside a class, a param named cls is just a param
+        @thing_or_things
+        def css(cls, prefix="x-"):
+            return {c: prefix + c for c in cls}
+
+        self.assertEqual("x-btn", css("btn"))
+
     def test_method_hint(self):
         # name the method by its qualname, and suggest the thing, not self
         with self.assertRaisesRegex(
