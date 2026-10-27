@@ -170,8 +170,10 @@ class TestThingOrThing(unittest.TestCase):
                 pass
 
     def test_method_hint(self):
-        # suggest the thing, not self
-        with self.assertRaisesRegex(ValueError, r"@thing_or_things\('ids'\)"):
+        # name the method by its qualname, and suggest the thing, not self
+        with self.assertRaisesRegex(
+            ValueError, r"Foo\.get\(\).*@thing_or_things\('ids'\)"
+        ):
 
             class Foo:
                 @thing_or_things
