@@ -17,7 +17,10 @@ _excluded = {
 
 ops = {
     op
-    for obj in (dict, float, int, list, object, str)
+    for obj in (complex, dict, float, int, list, object, str)
     for op in dir(obj)
     if op.startswith("__") and op.endswith("__") and op not in _excluded
 }
+
+# protocols that no builtin type above implements
+ops |= {"__fspath__", "__matmul__", "__rmatmul__"}

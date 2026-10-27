@@ -1,3 +1,6 @@
+import math
+import os
+import pathlib
 import unittest
 
 import ambiguous
@@ -169,6 +172,26 @@ class TestAmbiguous(unittest.TestCase):
         self.assertEqual(12.0, float(val("12")))
         self.assertEqual(["c", "b", "a"], list(reversed(val("abc"))))
         self.assertEqual(3, round(val(3.14159)))
+
+        # protocols no builtin type has, or whose fallback lives in math / os
+        class Matrix:
+            def __matmul__(self, other):
+                return "matmul"
+
+            def __rmatmul__(self, other):
+                return "rmatmul"
+
+        class Num:
+            def __float__(self):
+                return 2.5
+
+        self.assertEqual("matmul", val(Matrix()) @ 1)
+        self.assertEqual("rmatmul", 1 @ val(Matrix()))
+        self.assertEqual(2, math.floor(val(Num())))
+        self.assertEqual(3, math.ceil(val(Num())))
+        self.assertEqual(2, math.trunc(val(2.7)))
+        self.assertEqual(1 + 2j, complex(val(1 + 2j)))
+        self.assertEqual("/tmp", os.fspath(val(pathlib.Path("/tmp"))))
 
         with self.assertRaises(TypeError):
             iter(val(5))
